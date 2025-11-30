@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Générateur Complet - Titres & Export</title>
+  <title>Générateur Pro - A4/A3 & Export</title>
 
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
@@ -64,8 +64,7 @@
 
     .sheet {
       background: white; color: black;
-      display: flex; flex-direction: column; /* Important pour empiler Titre + Code */
-      justify-content: center; align-items: center;
+      display: flex; justify-content: center; align-items: center;
       position: relative;
     }
 
@@ -74,13 +73,6 @@
     .sheet.a4.landscape { width: 297mm; height: 210mm; }
     .sheet.a3.portrait  { width: 297mm; height: 420mm; }
     .sheet.a3.landscape { width: 420mm; height: 297mm; }
-
-    /* Style du Label (Titre) */
-    #label-display {
-      font-size: 3em; font-weight: bold; margin-bottom: 20px;
-      font-family: Arial, sans-serif; text-align: center;
-      max-width: 90%; word-wrap: break-word;
-    }
 
     #barcode-wrapper { transform-origin: center center; }
 
@@ -99,13 +91,8 @@
 <body>
 
   <aside class="sidebar">
-    <h2 style="margin:0; color:var(--accent); font-size:1.2rem;">Générateur & Étiquetage</h2>
+    <h2 style="margin:0; color:var(--accent); font-size:1.2rem;">Générateur PRO</h2>
     
-    <div class="control-group">
-      <label>Titre / Libellé (Optionnel)</label>
-      <input type="text" id="customTitle" placeholder="Ex: LOT #4589 - PROMO" oninput="generer()">
-    </div>
-
     <div class="control-group">
       <label>Code (Données)</label>
       <input type="text" id="texte" value="12345678" placeholder="Données...">
@@ -159,9 +146,6 @@
     
     <div class="sheet-container" id="capture-zone">
       <div id="pageSheet" class="sheet a4 portrait">
-        
-        <div id="label-display"></div>
-
         <div id="barcode-wrapper">
           <div id="canvas-target"></div>
         </div>
@@ -170,16 +154,13 @@
   </main>
 
   <script>
-    // Références DOM
     const refs = {
       texte: document.getElementById("texte"),
-      title: document.getElementById("customTitle"),
       type: document.getElementById("type"),
       showText: document.getElementById("showText"),
       slider: document.getElementById("sizeSlider"),
       target: document.getElementById("canvas-target"),
       wrapper: document.getElementById("barcode-wrapper"),
-      labelDisplay: document.getElementById("label-display"),
       pageSheet: document.getElementById("pageSheet"),
       printStyle: document.getElementById("print-style")
     };
@@ -194,12 +175,8 @@
 
     function generer() {
       const texte = refs.texte.value.trim();
-      const title = refs.title.value.trim();
       const type = refs.type.value;
       const displayValue = refs.showText.checked;
-
-      // Mise à jour du Titre
-      refs.labelDisplay.textContent = title;
 
       refs.target.innerHTML = "";
       if (!texte && type !== "QRCODE") return;
@@ -245,33 +222,24 @@
     }
 
     function telecharger() {
-      // Pour télécharger, on doit temporairement remettre l'échelle à 1
-      // sinon l'image sera petite ou floue
       const container = document.querySelector('.sheet-container');
-      const originalTransform = container.style.transform;
-      container.style.transform = "none"; // Reset échelle
+      container.style.transform = "none"; // Reset échelle pour capture parfaite
 
       html2canvas(document.getElementById("pageSheet"), {
-        scale: 2, // Meilleure qualité
-        backgroundColor: "#ffffff",
-        logging: false
+        scale: 2, backgroundColor: "#ffffff", logging: false
       }).then(canvas => {
         const a = document.createElement("a");
         a.download = `etiquette_${Date.now()}.png`;
         a.href = canvas.toDataURL("image/png");
         a.click();
-        
-        // On remet l'échelle visuelle
-        container.style.transform = ""; 
+        container.style.transform = ""; // Remet le zoom
       });
     }
 
-    // Events
     refs.texte.addEventListener("input", generer);
     refs.type.addEventListener("change", generer);
-    refs.showText.addEventListener("change", generer); // Ajouté manquant
+    refs.showText.addEventListener("change", generer);
     
-    // Init
     generer();
     updatePageConfig();
   </script>
