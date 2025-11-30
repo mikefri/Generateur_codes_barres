@@ -3,137 +3,124 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Code 128 Deluxe - Générateur & Impression</title>
+  <title>Générateur Code 128 • EAN-13 • QR Code</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root { --bg: #1e1e2e; --card: #2d2d44; --text: #cdd6f4; --accent: #89b4fa; }
-    @media (prefers-color-scheme: light) {
-      :root { --bg: #f8f9fa; --card: white; --text: #333; --accent: #0d6efd; }
-    }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-    .container { max-width: 800px; width: 100%; }
-    h1 { margin: 10px 0 5px; color: var(--accent); text-align: center; }
-    p { text-align: center; opacity: 0.9; margin: 0 0 20px; }
-    .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 20px; }
-    input, select, button { padding: 12px 16px; margin: 6px; border-radius: 8px; font-size: 16px; }
-    input, select { background: #333; color: white; border: 2px solid #444; width: calc(100% - 12px); max-width: 400px; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
-    .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 15px 0; align-items: center; }
-    .controls label { margin: 0 4px; }
-    button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-    button:hover { opacity: 0.9; transform: translateY(-2px); }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
-    .barcode-container { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    #barcode { width: 100%; height: auto; }
+    @media (prefers-color-scheme: light) { :root { --bg: #f8f9fa; --card: white; --text: #333; --accent: #0d6efd; } }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
+    .container { max-width:800px; width:100%; }
+    h1 { color:var(--accent); text-align:center; margin:10px 0 5px; }
+    .card { background:var(--card); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.3); margin-bottom:20px; }
+    input, select, button { padding:12px 16px; margin:6px; border-radius:8px; font-size:16px; }
+    input, select { background:#333; color:white; border:2px solid #444; width:calc(100% - 12px); max-width:500px; }
+    button { background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; }
+    button:hover { opacity:0.9; transform:translateY(-2px); }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:15px; }
+    .barcode-container { background:white; padding:40px; border-radius:12px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+    #result { width:100%; height:auto; }
+    canvas, svg { max-width:100%; height:auto; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Code 128 Deluxe</h1>
-    <p>Générateur + impression propre pour étiquettes</p>
+    <h1>Générateur Universel</h1>
+    <p>Code 128 • EAN-13 • QR Code</p>
 
     <div class="card">
-      <input type="text" id="texte" placeholder="Texte à encoder" value="1234567890" autofocus />
+      <input type="text" id="texte" placeholder="Texte ou numéro" value="1234567890" autofocus />
 
-      <div class="controls">
-        <select id="format">
-          <option value="CODE128">CODE128 Auto</option>
-          <option value="CODE128A">CODE128A</option>
-          <option value="CODE128B">CODE128B</option>
-          <option value="CODE128C">CODE128C</option>
-        </select>
-
-        <input type="number" id="height" value="120" min="50" max="400" style="width:90px"/>
-        <label for="height">Hauteur</label>
-
-        <input type="number" id="width" value="3" min="1" max="6" style="width:80px"/>
-        <label for="width">Épaisseur</label>
-      </div>
+      <select id="type" onchange="generer()">
+        <option value="CODE128">Code 128 (Auto)</option>
+        <option value="EAN13">EAN-13</option>
+        <option value="QRCODE">QR Code</option>
+      </select>
 
       <div class="actions">
-        <button onclick="generer()">Regénérer</button>
+        <button onclick="generer()">Générer</button>
         <button onclick="telecharger()">Télécharger PNG</button>
         <button onclick="copier()">Copier</button>
-        <button onclick="imprimerPropre()">Imprimer (code seul)</button>
+        <button onclick="imprimer()">Imprimer (code seul)</button>
       </div>
     </div>
 
     <div class="barcode-container" id="capture">
-      <svg id="barcode"></svg>
+      <div id="result"></div>
     </div>
   </div>
 
   <script>
     function generer() {
-      const texte = document.getElementById("texte").value.trim() || "VIDE";
-      JsBarcode("#barcode", texte, {
-        format: document.getElementById("format").value,
-        lineColor: "#000",
-        background: "#fff",
-        width: parseInt(document.getElementById("width").value),
-        height: parseInt(document.getElementById("height").value),
-        fontSize: 24,
-        margin: 30,
-        displayValue: true,
-        flat: true
-      });
+      const texte = document.getElementById("texte").value.trim();
+      const type = document.getElementById("type").value;
+      const container = document.getElementById("result");
+      container.innerHTML = "";
+
+      if (!texte && type !== "QRCODE") return alert("Entre du texte !");
+
+      if (type === "CODE128") {
+        const svg = document.createElement("svg");
+        container.appendChild(svg);
+        JsBarcode(svg, texte, { format: "CODE128", displayValue: true, height: 100, fontSize: 20, margin: 30 });
+
+      } else if (type === "EAN13") {
+        let ean = texte.replace(/\D/g,'').slice(0,12);
+        if (ean.length === 12) ean += calculerCheckDigit(ean);
+        else if (ean.length !== 13) return alert("EAN-13 doit faire 12 ou 13 chiffres");
+        const svg = document.createElement("svg");
+        container.appendChild(svg);
+        JsBarcode(svg, ean, { format: "EAN13", displayValue: true, height: 120, fontSize: 22, margin: 30 });
+
+      } else if (type === "QRCODE") {
+        const canvas = document.createElement("canvas");
+        container.appendChild(canvas);
+        QRCode.toCanvas(canvas, texte || "https://github.com", { width: 300, margin: 2, color: { dark: "#000", light: "#fff" } });
+      }
+    }
+
+    function calculerCheckDigit(ean12) {
+      let sum = 0;
+      for (let i = 0; i < 12; i++) sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
+      return (10 - (sum % 10)) % 10;
     }
 
     function telecharger() {
-      html2canvas(document.getElementById("capture"), { scale: 3 }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = `code128_${document.getElementById("texte").value || "barcode"}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+      html2canvas(document.getElementById("capture"), {scale: 3}).then(canvas => {
+        const a = document.createElement("a");
+        a.download = `barcode_${Date.now()}.png`;
+        a.href = canvas.toDataURL();
+        a.click();
       });
     }
 
     function copier() {
-      html2canvas(document.getElementById("capture"), { scale: 2 }).then(canvas => {
-        canvas.toBlob(blob => {
-          navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
-            .then(() => alert("Copié dans le presse-papier !"))
-            .catch(() => alert("Erreur lors de la copie"));
-        });
+      html2canvas(document.getElementById("capture"), {scale: 2}).then(canvas => {
+        canvas.toBlob(blob => navigatord clipboard.write([new ClipboardItem({"image/png": blob})])
+          .then(() => alert("Copié !"))
+          .catch(() => alert("Erreur copie")));
       });
     }
 
-    function imprimerPropre() {
-      const svgCode = document.getElementById("barcode").outerHTML;
-      const printWin = window.open("", "_blank");
-      printWin.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Code 128 - Impression</title>
-          <style>
-            body { margin: 0; padding: 15mm; background: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
-            svg { width: 100%; max-width: 100%; height: auto; }
-            @media print {
-              @page { margin: 5mm; }
-              body { padding: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          ${svgCode}
-          <script>
-            window.onload = () => window.print();
-            window.onafterprint = () => window.close();
-          <\/script>
-        </body>
-        </html>
-      `);
-      printWin.document.close();
+    function imprimer() {
+      const content = document.getElementById("result").innerHTML;
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <!DOCTYPE html><html><head><title>Impression</title>
+        <style>
+          body{margin:0;padding:15mm;background:white;display:flex;justify-content:center;align-items:center;height:100vh;}
+          canvas,svg{width:100%;max-width:100%;height:auto;}
+          @media print{@page{margin:5mm;}body{padding:0;}}
+        </style></head><body>${content}
+        <script>window.print(); window.onafterprint=()=>window.close();<\/script>
+        </body></html>`);
+      win.document.close();
     }
 
-    // Initialisation
+    // Démarrage
     generer();
     document.getElementById("texte").addEventListener("input", generer);
-    document.getElementById("format").addEventListener("change", generer);
-    document.getElementById("height").addEventListener("change", generer);
-    document.getElementById("width").addEventListener("change", generer);
   </script>
 </body>
 </html>
