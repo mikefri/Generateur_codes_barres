@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Générateur Universel – Code 128 • EAN-13 • QR Code</title>
 
-  <!-- Librairies -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -13,42 +12,57 @@
   <style>
     :root { --bg:#1e1e2e; --card:#2d2d44; --text:#cdd6f4; --accent:#89b4fa; }
     @media (prefers-color-scheme: light) { :root { --bg:#f8f9fa; --card:white; --text:#333; --accent:#0d6efd; } }
-    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+    
+    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; min-height:100vh; box-sizing: border-box; }
     .container { max-width:800px; width:100%; }
     h1 { color:var(--accent); text-align:center; margin:10px 0 5px; }
+    
     .card { background:var(--card); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.3); margin-bottom:20px; }
-    input, select { padding:14px 16px; margin:8px 0; border-radius:8px; font-size:16px; background:#333; color:white; border:2px solid #444; }
-    input { width:100%; max-width:500px; }
-    select { width:auto; }
-    button { padding:12px 20px; margin:8px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; }
+    
+    .input-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    input, select { padding:14px 16px; border-radius:8px; font-size:16px; background:#333; color:white; border:2px solid #444; outline: none; }
+    input:focus, select:focus { border-color: var(--accent); }
+    input { flex: 1; min-width: 200px; }
+    select { width:auto; cursor: pointer; }
+
+    button { padding:12px 20px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; transition: opacity 0.2s; }
     button:hover { opacity:.9; }
+    
     .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:15px; }
+    
     .barcode-container {
       background:white !important;
       padding:40px;
       border-radius:12px;
-      text-align:center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       min-height:250px;
       box-shadow:0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
     }
-    #result canvas, #result svg { max-width:100%; height:auto; background:white !important; }
+    
+    #result p { color: #f66; font-weight: bold; margin: 0; }
+    #result canvas, #result svg { max-width:100%; height:auto; display: block; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Générateur Universel</h1>
-    <p style="text-align:center;opacity:.9;">Code 128 • EAN-13 • QR Code</p>
+    <p style="text-align:center;opacity:.9;margin-bottom:30px;">Code 128 • EAN-13 • QR Code</p>
 
     <div class="card">
-      <input type="text" id="texte" placeholder="Texte, URL ou numéro" value="1234567891234" autofocus>
-      <select id="type">
-        <option value="CODE128">Code 128</option>
-        <option value="EAN13">EAN-13</option>
-        <option value="QRCODE">QR Code</option>
-      </select>
+      <div class="input-group">
+        <input type="text" id="texte" placeholder="Texte, URL ou chiffres" value="123456789123" autofocus>
+        <select id="type">
+          <option value="CODE128">Code 128</option>
+          <option value="EAN13" selected>EAN-13</option>
+          <option value="QRCODE">QR Code</option>
+        </select>
+      </div>
 
       <div class="actions">
-        <button onclick="generer()">Générer</button>
+        <button onclick="generer()">Actualiser</button>
         <button onclick="telecharger()">Télécharger PNG</button>
         <button onclick="copier()">Copier</button>
         <button onclick="imprimer()">Imprimer</button>
@@ -67,87 +81,164 @@
       const result = document.getElementById("result");
       result.innerHTML = "";
 
-      if (!texte && type !== "QRCODE") {
-        result.innerHTML = "<p style='color:#f66'>Entre du texte !</p>";
-        return;
+      // Validation de base pour éviter le vide (sauf si on veut un QR par défaut)
+      if (!texte) {
+        if (type === "QRCODE") {
+           // QR Code vide acceptable (ou texte par défaut)
+        } else {
+           result.innerHTML = "<p>Veuillez entrer du texte ou des chiffres.</p>";
+           return;
+        }
       }
 
-      if (type === "CODE128") {
-        const svg = document.createElement("svg");
-        result.appendChild(svg);
-        JsBarcode(svg, texte, {
-          format: "CODE128",
-          lineColor: "#000000",
-          background: "#ffffff",
-          displayValue: true,
-          height: 120,
-          fontSize: 20,
-          margin: 30
-        });
+      try {
+        if (type === "CODE128") {
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          result.appendChild(svg);
+          JsBarcode(svg, texte, {
+            format: "CODE128",
+            lineColor: "#000",
+            background: "#fff",
+            displayValue: true,
+            height: 100,
+            fontSize: 20,
+            margin: 10,
+            width: 2
+          });
 
-      } else if (type === "EAN13") {
-        let num = texte.replace(/\D/g, "").substring(0, 12);
-        if (num.length === 12) num += calculCheckDigit(num);
-        if (num.length !== 13) {
-          result.innerHTML = "<p style='color:#f66'>12 ou 13 chiffres requis</p>";
-          return;
+        } else if (type === "EAN13") {
+          // Nettoyage : on ne garde que les chiffres
+          let num = texte.replace(/\D/g, "");
+          
+          // Calcul automatique de la clé si 12 chiffres
+          if (num.length === 12) {
+            num += calculCheckDigit(num);
+            // Mise à jour visuelle du champ input (optionnel)
+            // document.getElementById("texte").value = num; 
+          }
+
+          if (num.length !== 13) {
+            throw new Error("EAN-13 nécessite 12 ou 13 chiffres.");
+          }
+
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          result.appendChild(svg);
+          JsBarcode(svg, num, {
+            format: "EAN13",
+            lineColor: "#000",
+            background: "#fff",
+            displayValue: true,
+            height: 100,
+            fontSize: 24,
+            margin: 10
+          });
+
+        } else if (type === "QRCODE") {
+          const canvas = document.createElement("canvas");
+          result.appendChild(canvas);
+          QRCode.toCanvas(canvas, texte || "https://example.com", {
+            width: 250,
+            margin: 2,
+            color: { dark: "#000000", light: "#ffffff" },
+            errorCorrectionLevel: 'H'
+          }, function (error) {
+            if (error) console.error(error);
+          });
         }
-        const svg = document.createElement("svg");
-        result.appendChild(svg);
-        JsBarcode(svg, num, {
-          format: "EAN13",
-          lineColor: "#000000",
-          background: "#ffffff",
-          displayValue: true,
-          height: 140,
-          fontSize: 24,
-          margin: 30
-        });
-
-      } else if (type === "QRCODE") {
-        const canvas = document.createElement("canvas");
-        result.appendChild(canvas);
-        QRCode.toCanvas(canvas, texte || "https://github.com", {
-          width: 320,
-          margin: 2,
-          color: { dark: "#000000", light: "#ffffff" }
-        });
+      } catch (e) {
+        result.innerHTML = `<p>Erreur : ${e.message || "Format invalide"}</p>`;
       }
     }
 
     function calculCheckDigit(ean12) {
       let sum = 0;
-      for (let i = 0; i < 12; i++) sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
-      return (10 - (sum % 10)) % 10;
+      for (let i = 0; i < 12; i++) {
+        // Position paire (index impair 1, 3...) * 3, sinon * 1
+        // Note: L'index js commence à 0 (donc pair), mais c'est la 1ère position (impair)
+        // EAN standard: (Impair * 1) + (Pair * 3).
+        // Index 0 (1er chiffre) -> Poids 1. Index 1 (2eme chiffre) -> Poids 3.
+        sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
+      }
+      const remainder = sum % 10;
+      return remainder === 0 ? 0 : 10 - remainder;
     }
 
     function telecharger() {
-      html2canvas(document.getElementById("capture"), {scale: 3}).then(c => {
+      const el = document.getElementById("capture");
+      html2canvas(el, {
+        scale: 4, // Haute qualité
+        backgroundColor: "#ffffff" // Force le fond blanc
+      }).then(canvas => {
         const a = document.createElement("a");
-        a.download = "code.png";
-        a.href = c.toDataURL(); a.click();
+        a.download = `barcode_${Date.now()}.png`;
+        a.href = canvas.toDataURL("image/png");
+        a.click();
       });
     }
 
     function copier() {
-      html2canvas(document.getElementById("capture"), {scale: 2}).then(c => {
-        c.toBlob(b => navigator.clipboard.write([new ClipboardItem({"image/png":b})])
-          .then(()=>alert("Copié !")).catch(()=>alert("Erreur copie")));
+      const el = document.getElementById("capture");
+      html2canvas(el, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+        canvas.toBlob(blob => {
+          if(blob) {
+            navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
+              .then(() => alert("Code copié dans le presse-papier !"))
+              .catch(err => alert("Erreur de copie : " + err));
+          }
+        });
       });
     }
 
     function imprimer() {
-      const content = document.getElementById("result").innerHTML;
-      const win = window.open("","_blank");
-      win.document.write(`<!DOCTYPE html><html><head><title>Impression</title>
-        <style>body{margin:0;padding:20mm;background:white;display:flex;justify-content:center;align-items:center;height:100vh;}
-        canvas,svg{max-width:100%;height:auto;} @media print{@page{margin:5mm;}body{padding:0;}}</style></head>
-        <body>${content}<script>window.print();window.onafterprint=()=>window.close();</script></body></html>`);
+      const resultDiv = document.getElementById("result");
+      const canvas = resultDiv.querySelector("canvas");
+      const svg = resultDiv.querySelector("svg");
+      
+      let contentToPrint = "";
+
+      // Si c'est un Canvas (QR Code), on doit le convertir en Image
+      if (canvas) {
+        contentToPrint = `<img src="${canvas.toDataURL()}" style="max-width:100%;" />`;
+      } 
+      // Si c'est un SVG (Barcode), on prend le HTML direct
+      else if (svg) {
+        contentToPrint = resultDiv.innerHTML;
+      } 
+      else {
+        alert("Rien à imprimer !");
+        return;
+      }
+
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Impression Code</title>
+          <style>
+            body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+            img, svg { max-width: 80vw; max-height: 80vh; } 
+            @media print { body { height: auto; display: block; text-align: center; padding-top: 50px; } }
+          </style>
+        </head>
+        <body>
+          ${contentToPrint}
+          <script>
+            setTimeout(() => {
+              window.print();
+              window.onafterprint = () => window.close();
+            }, 500); // Petit délai pour laisser l'image charger
+          <\/script>
+        </body>
+        </html>
+      `);
       win.document.close();
     }
 
-    // Démarrage immédiat
+    // Initialisation
     generer();
+    
+    // Événements
     document.getElementById("texte").addEventListener("input", generer);
     document.getElementById("type").addEventListener("change", generer);
   </script>
