@@ -17,13 +17,21 @@
     .container { max-width:800px; width:100%; }
     h1 { color:var(--accent); text-align:center; margin:10px 0 5px; }
     .card { background:var(--card); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.3); margin-bottom:20px; }
-    input, select { padding:14px 16px; margin:8px 0; border-radius:8px; font-size:16px; background:#333; color:white; border:2px solid #444; width:100%; max-width:500px; }
-    select { width:auto; display:inline-block; }
+    input, select { padding:14px 16px; margin:8px 0; border-radius:8px; font-size:16px; background:#333; color:white; border:2px solid #444; }
+    input { width:100%; max-width:500px; }
+    select { width:auto; }
     button { padding:12px 20px; margin:8px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; }
     button:hover { opacity:.9; }
     .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:15px; }
-    .barcode-container { background:white; padding:40px; border-radius:12px; text-align:center; min-height:200px; }
-    canvas, svg { max-width:100%; height:auto; }
+    .barcode-container {
+      background:white !important;
+      padding:40px;
+      border-radius:12px;
+      text-align:center;
+      min-height:250px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.1);
+    }
+    #result canvas, #result svg { max-width:100%; height:auto; background:white !important; }
   </style>
 </head>
 <body>
@@ -33,7 +41,6 @@
 
     <div class="card">
       <input type="text" id="texte" placeholder="Texte, URL ou numéro" value="1234567891234" autofocus>
-
       <select id="type">
         <option value="CODE128">Code 128</option>
         <option value="EAN13">EAN-13</option>
@@ -54,7 +61,6 @@
   </div>
 
   <script>
-    // Fonction principale
     function generer() {
       const texte = document.getElementById("texte").value.trim();
       const type = document.getElementById("type").value;
@@ -66,100 +72,81 @@
         return;
       }
 
-      // CODE 128
       if (type === "CODE128") {
         const svg = document.createElement("svg");
         result.appendChild(svg);
         JsBarcode(svg, texte, {
           format: "CODE128",
+          lineColor: "#000000",
+          background: "#ffffff",
           displayValue: true,
-          height: 100,
+          height: 120,
           fontSize: 20,
-          margin: 30,
-          lineColor: "#000",
-          background: "#fff"
+          margin: 30
         });
 
-      // EAN-13
       } else if (type === "EAN13") {
         let num = texte.replace(/\D/g, "").substring(0, 12);
         if (num.length === 12) num += calculCheckDigit(num);
         if (num.length !== 13) {
-          result.innerHTML = "<p style='color:#f66'>EAN-13 : 12 ou 13 chiffres requis</p>";
+          result.innerHTML = "<p style='color:#f66'>12 ou 13 chiffres requis</p>";
           return;
         }
         const svg = document.createElement("svg");
         result.appendChild(svg);
         JsBarcode(svg, num, {
           format: "EAN13",
+          lineColor: "#000000",
+          background: "#ffffff",
           displayValue: true,
-          height: 120,
-          fontSize: 22,
+          height: 140,
+          fontSize: 24,
           margin: 30
         });
 
-      // QR CODE
       } else if (type === "QRCODE") {
         const canvas = document.createElement("canvas");
         result.appendChild(canvas);
         QRCode.toCanvas(canvas, texte || "https://github.com", {
-          width: 300,
+          width: 320,
           margin: 2,
           color: { dark: "#000000", light: "#ffffff" }
         });
       }
     }
 
-    // Calcul du chiffre de contrôle EAN-13
     function calculCheckDigit(ean12) {
       let sum = 0;
-      for (let i = 0; i < 12; i++) {
-        sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
-      }
-      const check = (10 - (sum % 10)) % 10;
-      return check;
+      for (let i = 0; i < 12; i++) sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
+      return (10 - (sum % 10)) % 10;
     }
 
-    // Téléchargement PNG
     function telecharger() {
-      html2canvas(document.getElementById("capture"), {scale: 3}).then(canvas => {
+      html2canvas(document.getElementById("capture"), {scale: 3}).then(c => {
         const a = document.createElement("a");
-        a.download = "code-barres.png";
-        a.href = canvas.toDataURL();
-        a.click();
+        a.download = "code.png";
+        a.href = c.toDataURL(); a.click();
       });
     }
 
-    // Copie dans le presse-papier
     function copier() {
-      html2canvas(document.getElementById("capture"), {scale: 2}).then(canvas => {
-        canvas.toBlob(blob => {
-          navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
-            .then(() => alert("Copié dans le presse-papier !"))
-            .catch(() => alert("Erreur copie"));
-        });
+      html2canvas(document.getElementById("capture"), {scale: 2}).then(c => {
+        c.toBlob(b => navigator.clipboard.write([new ClipboardItem({"image/png":b})])
+          .then(()=>alert("Copié !")).catch(()=>alert("Erreur copie")));
       });
     }
 
-    // Impression propre (seul le code)
     function imprimer() {
       const content = document.getElementById("result").innerHTML;
-      const win = window.open("", "_blank");
-      win.document.write(`
-        <!DOCTYPE html>
-        <html><head><title>Impression</title>
-        <style>
-          body{margin:0;padding:20mm;background:white;display:flex;justify-content:center;align-items:center;height:100vh;}
-          canvas,svg{max-width:100%;height:auto;}
-          @media print{@page{margin:5mm;}body{padding:0;}}
-        </style></head>
-        <body>${content}
-          <script>window.onload=()=>window.print();window.onafterprint=()=>window.close();<\/script>
-        </body></html>`);
+      const win = window.open("","_blank");
+      win.document.write(`<!DOCTYPE html><html><head><title>Impression</title>
+        <style>body{margin:0;padding:20mm;background:white;display:flex;justify-content:center;align-items:center;height:100vh;}
+        canvas,svg{max-width:100%;height:auto;} @media print{@page{margin:5mm;}body{padding:0;}}</style></head>
+        <body>${content}<script>window.print();window.onafterprint=()=>window.close();</script></body></html>`);
       win.document.close();
     }
 
-    // Lancement automatique + écouteurs
+    // Démarrage immédiat
     generer();
     document.getElementById("texte").addEventListener("input", generer);
     document.getElementById("type").addEventListener("change", generer);
