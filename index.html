@@ -3,134 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Générateur Code-Barres Pro</title>
+  <title>Générateur A4 & Code-Barres</title>
 
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    :root { --bg:#1e1e2e; --card:#2d2d44; --text:#cdd6f4; --accent:#89b4fa; }
-    @media (prefers-color-scheme: light) { :root { --bg:#f8f9fa; --card:white; --text:#333; --accent:#0d6efd; } }
-    
-    body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; min-height:100vh; box-sizing: border-box; }
-    .container { max-width:800px; width:100%; }
-    h1 { color:var(--accent); text-align:center; margin:10px 0 5px; }
-    
-    .card { background:var(--card); border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.3); margin-bottom:20px; }
-    
-    .input-group { display: flex; gap: 10px; flex-wrap: wrap; }
-    input, select { padding:14px 16px; border-radius:8px; font-size:16px; background:#333; color:white; border:2px solid #444; outline: none; }
-    input:focus, select:focus { border-color: var(--accent); }
-    input { flex: 1; min-width: 200px; }
-    select { width:auto; cursor: pointer; }
+    :root { --bg:#1e1e2e; --panel:#2d2d44; --text:#cdd6f4; --accent:#89b4fa; }
+    body { 
+      font-family: system-ui, sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      margin: 0; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      min-height: 100vh;
+    }
 
-    button { padding:12px 20px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; font-weight:bold; transition: opacity 0.2s; }
-    button:hover { opacity:.9; }
-    
-    .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:15px; }
-    
-    .barcode-container {
-      background:white !important;
-      padding:20px;
-      border-radius:12px;
+    /* --- PANNEAU DE CONTROLE --- */
+    .controls {
+      background: var(--panel);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 30px;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height:250px;
-      box-shadow:0 4px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input[type="text"], select {
+      padding: 10px; border-radius: 6px; border: 1px solid #555;
+      background: #333; color: white; flex: 1; font-size: 16px;
     }
     
-    #result p { color: #f66; font-weight: bold; margin: 0; }
-    #result canvas, #result svg { max-width:100%; height:auto; display: block; }
+    /* Slider de taille */
+    .range-group { flex: 1; display: flex; align-items: center; gap: 10px; background: #333; padding: 5px 15px; border-radius: 6px; }
+    input[type="range"] { flex: 1; cursor: pointer; }
+    
+    button {
+      padding: 10px 20px; border-radius: 6px; border: none;
+      background: var(--accent); color: white; font-weight: bold;
+      cursor: pointer; font-size: 16px;
+    }
+    button:hover { opacity: 0.9; }
+    button.print-btn { background: #2ecc71; }
+
+    /* --- FEUILLE A4 (APERÇU) --- */
+    .sheet-container {
+      perspective: 1000px;
+      margin-bottom: 50px;
+    }
+    
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      color: black;
+      position: relative;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center; /* Centré horizontalement */
+      align-items: center;     /* Centré verticalement */
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+
+    /* Le conteneur du code qui sera redimensionné */
+    #barcode-wrapper {
+      transform-origin: center center;
+      text-align: center;
+    }
+
+    /* --- GESTION DE L'IMPRESSION --- */
+    @media print {
+      body { 
+        background: white; 
+        margin: 0; padding: 0; 
+        display: block; 
+      }
+      .controls, h1, p { display: none !important; } /* Cache l'interface */
+      .sheet-container { margin: 0; box-shadow: none; }
+      .a4-page {
+        width: 100%; height: 100vh; /* Force la pleine page */
+        box-shadow: none;
+        border: none;
+        page-break-after: always;
+      }
+      @page { margin: 0; size: A4; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Générateur Universel</h1>
-    <p style="text-align:center;opacity:.9;margin-bottom:30px;">Code 128 • EAN-13 • QR Code</p>
 
-    <div class="card">
-      <div class="input-group">
-        <input type="text" id="texte" placeholder="Texte, URL ou chiffres" value="TEST-1234" autofocus>
-        <select id="type">
-          <option value="CODE128" selected>Code 128</option>
-          <option value="EAN13">EAN-13</option>
-          <option value="QRCODE">QR Code</option>
-        </select>
-      </div>
-
-      <div class="actions">
-        <button onclick="generer()">Actualiser</button>
-        <button onclick="telecharger()">Télécharger PNG</button>
-        <button onclick="copier()">Copier</button>
-        <button onclick="imprimer()">Imprimer</button>
-      </div>
+  <div class="controls">
+    <div style="text-align:center; color:var(--accent); font-weight:bold; font-size:1.2em;">
+      Configuration
+    </div>
+    
+    <div class="row">
+      <input type="text" id="texte" value="TEST-1234" placeholder="Données du code">
+      <select id="type">
+        <option value="CODE128" selected>Code 128</option>
+        <option value="EAN13">EAN-13</option>
+        <option value="QRCODE">QR Code</option>
+      </select>
     </div>
 
-    <div class="barcode-container" id="capture">
-      <div id="result"></div>
+    <div class="row">
+      <div class="range-group">
+        <span>Taille :</span>
+        <input type="range" id="sizeSlider" min="0.5" max="3" step="0.1" value="1">
+        <span id="sizeValue">100%</span>
+      </div>
+      <button class="print-btn" onclick="window.print()">🖨️ Imprimer la page</button>
+    </div>
+  </div>
+
+  <div class="sheet-container">
+    <div class="a4-page">
+      <div id="barcode-wrapper">
+        <div id="canvas-target"></div>
+      </div>
     </div>
   </div>
 
   <script>
-    function generer() {
-      const texte = document.getElementById("texte").value.trim();
-      const type = document.getElementById("type").value;
-      const result = document.getElementById("result");
-      result.innerHTML = "";
+    const inputTexte = document.getElementById("texte");
+    const inputType = document.getElementById("type");
+    const slider = document.getElementById("sizeSlider");
+    const sizeVal = document.getElementById("sizeValue");
+    const target = document.getElementById("canvas-target");
+    const wrapper = document.getElementById("barcode-wrapper");
 
-      if (!texte && type !== "QRCODE") {
-         result.innerHTML = "<p>Veuillez entrer du texte.</p>";
-         return;
-      }
+    function generer() {
+      const texte = inputTexte.value.trim();
+      const type = inputType.value;
+      
+      target.innerHTML = ""; // Reset
+
+      if (!texte && type !== "QRCODE") return;
 
       try {
         if (type === "CODE128") {
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          result.appendChild(svg);
+          target.appendChild(svg);
           JsBarcode(svg, texte, {
             format: "CODE128",
             lineColor: "#000",
-            background: "#fff",
+            background: "transparent", // Transparent pour s'intégrer à la page blanche
             displayValue: true,
-            height: 100,
             fontSize: 20,
-            margin: 10,
-            width: 2
+            height: 100,
+            margin: 0
           });
 
         } else if (type === "EAN13") {
           let num = texte.replace(/\D/g, "");
           if (num.length === 12) num += calculCheckDigit(num);
           
-          if (num.length !== 13) throw new Error("12 ou 13 chiffres requis pour EAN-13");
+          if (num.length !== 13) throw new Error("12/13 chiffres requis");
 
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          result.appendChild(svg);
+          target.appendChild(svg);
           JsBarcode(svg, num, {
             format: "EAN13",
             lineColor: "#000",
-            background: "#fff",
+            background: "transparent",
             displayValue: true,
-            height: 100,
             fontSize: 24,
-            margin: 10
+            height: 100,
+            margin: 0
           });
 
         } else if (type === "QRCODE") {
           const canvas = document.createElement("canvas");
-          result.appendChild(canvas);
-          QRCode.toCanvas(canvas, texte || "https://example.com", {
-            width: 250,
-            margin: 1,
+          target.appendChild(canvas);
+          QRCode.toCanvas(canvas, texte || "https://exemple.com", {
+            width: 200,
+            margin: 0,
             color: { dark: "#000000", light: "#ffffff" }
           });
         }
       } catch (e) {
-        result.innerHTML = `<p>Erreur : ${e.message}</p>`;
+        target.innerHTML = `<span style='color:red; font-weight:bold'>${e.message}</span>`;
       }
+    }
+
+    // Gestion de la taille (Zoom CSS)
+    function updateSize() {
+      const scale = slider.value;
+      sizeVal.innerText = Math.round(scale * 100) + "%";
+      wrapper.style.transform = `scale(${scale})`;
     }
 
     function calculCheckDigit(ean12) {
@@ -140,90 +209,13 @@
       return rem === 0 ? 0 : 10 - rem;
     }
 
-    function telecharger() {
-      html2canvas(document.getElementById("capture"), { scale: 4, backgroundColor: "#ffffff" })
-        .then(c => {
-          const a = document.createElement("a");
-          a.download = `code_${Date.now()}.png`;
-          a.href = c.toDataURL(); a.click();
-        });
-    }
+    // Événements
+    inputTexte.addEventListener("input", generer);
+    inputType.addEventListener("change", generer);
+    slider.addEventListener("input", updateSize);
 
-    function copier() {
-      html2canvas(document.getElementById("capture"), { scale: 3, backgroundColor: "#ffffff" })
-        .then(c => c.toBlob(b => navigator.clipboard.write([new ClipboardItem({"image/png":b})])
-          .then(()=>alert("Copié !"))));
-    }
-
-    function imprimer() {
-      const resultDiv = document.getElementById("result");
-      const canvas = resultDiv.querySelector("canvas");
-      const svg = resultDiv.querySelector("svg");
-      
-      let content = "";
-      // On convertit tout en image pour garantir le rendu exact lors de l'impression
-      if (canvas) {
-        content = `<img src="${canvas.toDataURL()}" />`;
-      } else if (svg) {
-        // Pour le SVG, on le sérialise pour l'intégrer proprement
-        const serializer = new XMLSerializer();
-        const svgStr = serializer.serializeToString(svg);
-        content = `<div>${svgStr}</div>`;
-      } else {
-        return;
-      }
-
-      const win = window.open("", "_blank");
-      win.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Impression</title>
-          <style>
-            /* Reset total pour l'impression */
-            @page { margin: 0; size: auto; }
-            body, html { 
-              margin: 0; padding: 0; height: 100%; width: 100%; 
-              display: flex; justify-content: center; align-items: center; 
-              background: white;
-            }
-            /* Ciblage spécifique pour l'impression */
-            @media print {
-              body { 
-                display: flex; 
-                justify-content: center; 
-                align-items: center; 
-                height: 100vh; /* Utilise toute la hauteur de la page */
-              }
-              /* Cache les en-têtes/pieds de page du navigateur si possible (dépend du navigateur) */
-              header, footer { display: none !important; }
-            }
-            img, svg { 
-              max-width: 90vw; 
-              max-height: 90vh; 
-              object-fit: contain; /* S'assure que le code reste proportionnel */
-            }
-            div { display: flex; justify-content: center; }
-          </style>
-        </head>
-        <body>
-          ${content}
-          <script>
-            // Lancement automatique de l'impression
-            window.onload = () => {
-              window.print();
-              window.onafterprint = () => window.close();
-            };
-          <\/script>
-        </body>
-        </html>
-      `);
-      win.document.close();
-    }
-
+    // Init
     generer();
-    document.getElementById("texte").addEventListener("input", generer);
-    document.getElementById("type").addEventListener("change", generer);
   </script>
 </body>
 </html>
