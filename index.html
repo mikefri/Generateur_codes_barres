@@ -5,29 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Code 128 Deluxe + Impression propre</title>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  < accountability src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
     :root { --bg: #1e1e2e; --card: #2d2d44; --text: #cdd6f4; --accent: #89b4fa; }
-    @media (prefers-color-scheme: light) { --accent: #0d6efd; --bg: #f8f9fa; --card: white; --text: #333; }
-    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    @media (prefers-color-scheme: light) { --bg: #f8f9fa; --card: white; --text: #333; --accent: #0d6efd; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
     .container { max-width: 800px; width: 100%; }
-    h1 { color: var(--accent); }
+    h1 { margin: 10px 0 5px; color: var(--accent); text-align: center; }
+    p { text-align: center; opacity: 0.9; }
     .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 20px; }
-    input, select, button { padding: 12px 16px; margin: 8px; border-radius: 8px; font-size: 16px; }
-    button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { opacity: 0.9; }
-    .barcode-container { background: white; padding: 40px; border-radius: 12px; margin: 30px 0; text-align: center; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 20px; }
+    input, select, button { padding: 12px 16px; margin: 6px; border-radius: 8px; font-size: 16px; }
+    input, select { background: #333; color: white; border: 2px solid #444; }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 10px 0; }
+    button { background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    button:hover { opacity: 0.9; transform: translateY(-2px); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
+    .barcode-container { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    #barcode { width: 100%; height: auto; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Code 128 Deluxe</h1>
-    <p>Générateur + Impression propre pour étiquettes</p>
+    <p>Générateur + impression propre pour étiquettes</p>
 
     <div class="card">
       <input type="text" id="texte" placeholder="Texte à encoder" value="1234567890" autofocus />
-      
+
       <div class="controls">
         <select id="format">
           <option value="CODE128">CODE128 Auto</option>
@@ -35,8 +40,10 @@
           <option value="CODE128B">CODE128B</option>
           <option value="CODE128C">CODE128C</option>
         </select>
-        <input type="number" id="height" value="120" min="50" max="400" style="width:90px"/> Hauteur
-        <input type="number" id="width" value="3" min="1" max="6" style="width:80px"/> Épaisseur
+        <input type="number" id="height" value="120" min="50" max="400" style="width:90px"/>
+        <label>Hauteur</label>
+        <input type="number" id="width" value="3" min="1" max="6" style="width:80px"/>
+        <label>Épaisseur</label>
       </div>
 
       <div class="actions">
@@ -59,8 +66,8 @@
         format: document.getElementById("format").value,
         lineColor: "#000",
         background: "#fff",
-        width: document.getElementById("width").value,
-        height: document.getElementById("height").value,
+        width: parseInt(document.getElementById("width").value),
+        height: parseInt(document.getElementById("height").value),
         fontSize: 24,
         margin: 30,
         displayValue: true,
@@ -79,45 +86,36 @@
 
     function copier() {
       html2canvas(document.querySelector("#capture"), {scale: 2}).then(canvas => {
-        canvas.toBlob(blob => navigator.clipboard.write([new ClipboardItem({'image/png': blob})]));
-        alert("Copié !");
+        canvas.toBlob(blob => {
+          navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+            .then(() => alert("Image copiée dans le presse-papier !"))
+            .catch(() => alert("Erreur copie"));
+        });
       });
     }
 
-    // ←←← NOUVELLE FONCTION D'IMPRESSION PROPRE ←←←
     function imprimerPropre() {
-      const svg = document.querySelector("#barcode").outerHTML;
-      const win = window.open('', '_blank');
-      win.document.write(`
+      const svgData = document.querySelector("#barcode").outerHTML;
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
         <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Code 128 - Impression</title>
-          <style>
-            body { margin:0; padding:20mm; background:white; display:flex; justify-content:center; align-items:center; height:100vh; }
-            svg { width:100%; max-width:100%; height:auto; }
-            @media print {
-              body { padding:0; margin:0; }
-              @page { margin: 5mm; }
-            }
-          </style>
-        </head>
-        <body>
-          ${svg}
-          <script>
-            window.onload = () => window.print();
-            window.onafterprint = () => window.close();
-          </script>
-        </body>
-        </html>
+        <html><head><title>Code 128</title>
+        <style>
+          body { margin:0; padding:15mm; background:white; display:flex; justify-content:center; align-items:center; height:100vh; }
+          svg { width:100%; max-width:100%; height:auto; }
+          @media print { @page { margin:5mm; } body { padding:0; } }
+        </style></head>
+        <body>${svgData}
+          <script>window.print(); window.onafterprint = () => window.close();<\/script>
+        </body></html>
       `);
-      win.document.close();
+      printWindow.document.close();
     }
 
-    // Init
+    // Lancement automatique au chargement + mise à jour live
     generer();
     document.getElementById("texte").addEventListener("input", generer);
-    document.querySelectorAll("select, input[type=number]").forEach(el => el.addEventListener("change", generer));
+    document.querySelectorAll("#format, #height, #width").forEach(el => el.addEventListener("change", generer));
   </script>
 </body>
 </html>
