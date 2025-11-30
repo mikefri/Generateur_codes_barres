@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Générateur Universel – Code 128 • EAN-13 • QR Code</title>
+  <title>Générateur Code-Barres Pro</title>
 
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
@@ -32,7 +32,7 @@
     
     .barcode-container {
       background:white !important;
-      padding:40px;
+      padding:20px;
       border-radius:12px;
       display: flex;
       justify-content: center;
@@ -53,10 +53,10 @@
 
     <div class="card">
       <div class="input-group">
-        <input type="text" id="texte" placeholder="Texte, URL ou chiffres" value="123456789123" autofocus>
+        <input type="text" id="texte" placeholder="Texte, URL ou chiffres" value="TEST-1234" autofocus>
         <select id="type">
-          <option value="CODE128">Code 128</option>
-          <option value="EAN13" selected>EAN-13</option>
+          <option value="CODE128" selected>Code 128</option>
+          <option value="EAN13">EAN-13</option>
           <option value="QRCODE">QR Code</option>
         </select>
       </div>
@@ -81,14 +81,9 @@
       const result = document.getElementById("result");
       result.innerHTML = "";
 
-      // Validation de base pour éviter le vide (sauf si on veut un QR par défaut)
-      if (!texte) {
-        if (type === "QRCODE") {
-           // QR Code vide acceptable (ou texte par défaut)
-        } else {
-           result.innerHTML = "<p>Veuillez entrer du texte ou des chiffres.</p>";
-           return;
-        }
+      if (!texte && type !== "QRCODE") {
+         result.innerHTML = "<p>Veuillez entrer du texte.</p>";
+         return;
       }
 
       try {
@@ -107,19 +102,10 @@
           });
 
         } else if (type === "EAN13") {
-          // Nettoyage : on ne garde que les chiffres
           let num = texte.replace(/\D/g, "");
+          if (num.length === 12) num += calculCheckDigit(num);
           
-          // Calcul automatique de la clé si 12 chiffres
-          if (num.length === 12) {
-            num += calculCheckDigit(num);
-            // Mise à jour visuelle du champ input (optionnel)
-            // document.getElementById("texte").value = num; 
-          }
-
-          if (num.length !== 13) {
-            throw new Error("EAN-13 nécessite 12 ou 13 chiffres.");
-          }
+          if (num.length !== 13) throw new Error("12 ou 13 chiffres requis pour EAN-13");
 
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           result.appendChild(svg);
@@ -138,55 +124,35 @@
           result.appendChild(canvas);
           QRCode.toCanvas(canvas, texte || "https://example.com", {
             width: 250,
-            margin: 2,
-            color: { dark: "#000000", light: "#ffffff" },
-            errorCorrectionLevel: 'H'
-          }, function (error) {
-            if (error) console.error(error);
+            margin: 1,
+            color: { dark: "#000000", light: "#ffffff" }
           });
         }
       } catch (e) {
-        result.innerHTML = `<p>Erreur : ${e.message || "Format invalide"}</p>`;
+        result.innerHTML = `<p>Erreur : ${e.message}</p>`;
       }
     }
 
     function calculCheckDigit(ean12) {
       let sum = 0;
-      for (let i = 0; i < 12; i++) {
-        // Position paire (index impair 1, 3...) * 3, sinon * 1
-        // Note: L'index js commence à 0 (donc pair), mais c'est la 1ère position (impair)
-        // EAN standard: (Impair * 1) + (Pair * 3).
-        // Index 0 (1er chiffre) -> Poids 1. Index 1 (2eme chiffre) -> Poids 3.
-        sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
-      }
-      const remainder = sum % 10;
-      return remainder === 0 ? 0 : 10 - remainder;
+      for (let i = 0; i < 12; i++) sum += (i % 2 === 0 ? 1 : 3) * parseInt(ean12[i]);
+      const rem = sum % 10;
+      return rem === 0 ? 0 : 10 - rem;
     }
 
     function telecharger() {
-      const el = document.getElementById("capture");
-      html2canvas(el, {
-        scale: 4, // Haute qualité
-        backgroundColor: "#ffffff" // Force le fond blanc
-      }).then(canvas => {
-        const a = document.createElement("a");
-        a.download = `barcode_${Date.now()}.png`;
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-      });
+      html2canvas(document.getElementById("capture"), { scale: 4, backgroundColor: "#ffffff" })
+        .then(c => {
+          const a = document.createElement("a");
+          a.download = `code_${Date.now()}.png`;
+          a.href = c.toDataURL(); a.click();
+        });
     }
 
     function copier() {
-      const el = document.getElementById("capture");
-      html2canvas(el, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
-        canvas.toBlob(blob => {
-          if(blob) {
-            navigator.clipboard.write([new ClipboardItem({"image/png": blob})])
-              .then(() => alert("Code copié dans le presse-papier !"))
-              .catch(err => alert("Erreur de copie : " + err));
-          }
-        });
-      });
+      html2canvas(document.getElementById("capture"), { scale: 3, backgroundColor: "#ffffff" })
+        .then(c => c.toBlob(b => navigator.clipboard.write([new ClipboardItem({"image/png":b})])
+          .then(()=>alert("Copié !"))));
     }
 
     function imprimer() {
@@ -194,18 +160,16 @@
       const canvas = resultDiv.querySelector("canvas");
       const svg = resultDiv.querySelector("svg");
       
-      let contentToPrint = "";
-
-      // Si c'est un Canvas (QR Code), on doit le convertir en Image
+      let content = "";
+      // On convertit tout en image pour garantir le rendu exact lors de l'impression
       if (canvas) {
-        contentToPrint = `<img src="${canvas.toDataURL()}" style="max-width:100%;" />`;
-      } 
-      // Si c'est un SVG (Barcode), on prend le HTML direct
-      else if (svg) {
-        contentToPrint = resultDiv.innerHTML;
-      } 
-      else {
-        alert("Rien à imprimer !");
+        content = `<img src="${canvas.toDataURL()}" />`;
+      } else if (svg) {
+        // Pour le SVG, on le sérialise pour l'intégrer proprement
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svg);
+        content = `<div>${svgStr}</div>`;
+      } else {
         return;
       }
 
@@ -214,20 +178,42 @@
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Impression Code</title>
+          <title>Impression</title>
           <style>
-            body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-            img, svg { max-width: 80vw; max-height: 80vh; } 
-            @media print { body { height: auto; display: block; text-align: center; padding-top: 50px; } }
+            /* Reset total pour l'impression */
+            @page { margin: 0; size: auto; }
+            body, html { 
+              margin: 0; padding: 0; height: 100%; width: 100%; 
+              display: flex; justify-content: center; align-items: center; 
+              background: white;
+            }
+            /* Ciblage spécifique pour l'impression */
+            @media print {
+              body { 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh; /* Utilise toute la hauteur de la page */
+              }
+              /* Cache les en-têtes/pieds de page du navigateur si possible (dépend du navigateur) */
+              header, footer { display: none !important; }
+            }
+            img, svg { 
+              max-width: 90vw; 
+              max-height: 90vh; 
+              object-fit: contain; /* S'assure que le code reste proportionnel */
+            }
+            div { display: flex; justify-content: center; }
           </style>
         </head>
         <body>
-          ${contentToPrint}
+          ${content}
           <script>
-            setTimeout(() => {
+            // Lancement automatique de l'impression
+            window.onload = () => {
               window.print();
               window.onafterprint = () => window.close();
-            }, 500); // Petit délai pour laisser l'image charger
+            };
           <\/script>
         </body>
         </html>
@@ -235,10 +221,7 @@
       win.document.close();
     }
 
-    // Initialisation
     generer();
-    
-    // Événements
     document.getElementById("texte").addEventListener("input", generer);
     document.getElementById("type").addEventListener("change", generer);
   </script>
