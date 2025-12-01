@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Générateur codes barres</title>
 
+  <!-- --- AJOUTS PWA --- -->
   <meta name="theme-color" content="#89b4fa">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
 
+  <!-- Librairies -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
-   
   <style id="print-style"></style>
 </head>
 <body>
@@ -22,6 +23,19 @@
   <aside class="sidebar">
     <h2 class="app-title">Générateur</h2>
     
+    <!-- NOUVEAU : GESTION DU TITRE -->
+    <div class="control-group">
+      <label>Titre (Haut de page)</label>
+      <input type="text" id="customTitle" placeholder="Ex: PROMO 2025">
+    </div>
+
+    <div class="control-group">
+      <label>Taille du Titre</label>
+      <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3">
+    </div>
+    
+    <hr class="divider">
+
     <div class="control-group">
       <label>Code (Données)</label>
       <input type="text" id="texte" value="12345678" placeholder="Données...">
@@ -81,10 +95,9 @@
       <button class="btn-download" id="downloadBtn">💾 TÉLÉCHARGER PNG</button>
     </div>
 
-    <div style="margin-top: 30px; text-align: center; font-size: 0.85rem; color: #666; font-style: italic;">
-      Créé par <strong>Micfri</strong>
+    <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; color: #a6adc8; opacity: 0.6;">
+      Créé par micfri
     </div>
-
   </aside>
 
   <main class="main-content">
@@ -92,6 +105,10 @@
     
     <div class="sheet-container" id="capture-zone">
       <div id="pageSheet" class="sheet a4 portrait">
+        
+        <!-- NOUVEAU : ZONE D'AFFICHAGE DU TITRE -->
+        <div id="title-display"></div>
+
         <div id="barcode-wrapper">
           <div id="canvas-target"></div>
         </div>
@@ -100,13 +117,10 @@
   </main>
 
   <script src="script.js"></script>
-
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker enregistré !'))
-          .catch(err => console.log('Erreur Service Worker :', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('Erreur SW:', err));
       });
     }
   </script>

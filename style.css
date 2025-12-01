@@ -82,9 +82,23 @@ button:hover { opacity: 0.9; transform: scale(1.02); }
 
 .sheet {
   background: white; color: black;
-  display: flex; justify-content: center; align-items: center;
+  display: flex; 
+  flex-direction: column; /* Important pour empiler Titre + Code */
+  justify-content: center; 
+  align-items: center;
   position: relative;
   transition: all 0.3s ease;
+}
+
+/* --- Style du Titre --- */
+#title-display {
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px; /* Espace entre titre et code */
+  width: 90%;
+  word-wrap: break-word; /* Coupe les mots si trop longs */
+  color: #000;
 }
 
 /* Dimensions */

@@ -1,6 +1,5 @@
 /* script.js */
 
-// Références vers les éléments du DOM
 const refs = {
   texte: document.getElementById("texte"),
   type: document.getElementById("type"),
@@ -12,21 +11,28 @@ const refs = {
   printStyle: document.getElementById("print-style"),
   printBtn: document.getElementById("printBtn"),
   downloadBtn: document.getElementById("downloadBtn"),
-  // On récupère tous les boutons radio de format et orientation
   formatInputs: document.querySelectorAll('input[name="format"]'),
-  orientationInputs: document.querySelectorAll('input[name="orientation"]')
+  orientationInputs: document.querySelectorAll('input[name="orientation"]'),
+  
+  // NOUVELLES RÉFÉRENCES POUR LE TITRE
+  titleInput: document.getElementById("customTitle"),
+  titleSizeSlider: document.getElementById("titleSizeSlider"),
+  titleDisplay: document.getElementById("title-display")
 };
 
-// --- FONCTIONS ---
+// --- GESTION DU TITRE ---
+function updateTitle() {
+  // Met à jour le texte
+  refs.titleDisplay.textContent = refs.titleInput.value;
+  // Met à jour la taille (en 'em' pour que ce soit relatif)
+  refs.titleDisplay.style.fontSize = refs.titleSizeSlider.value + 'em';
+}
 
+// --- FONCTIONS EXISTANTES ---
 function updatePageConfig() {
   const format = document.querySelector('input[name="format"]:checked').value;
   const orientation = document.querySelector('input[name="orientation"]:checked').value;
-  
-  // Mise à jour visuelle (classes CSS)
   refs.pageSheet.className = `sheet ${format} ${orientation}`;
-  
-  // Mise à jour pour l'imprimante (CSS dynamique)
   refs.printStyle.innerHTML = `@page { size: ${format.toUpperCase()} ${orientation}; margin: 0; }`;
 }
 
@@ -49,13 +55,7 @@ function generer() {
     } else if (type === "EAN13") {
       let num = texte.replace(/\D/g, "");
       if (num.length === 12) num += calculCheckDigit(num);
-      
-      // Petit check pour EAN13
-      if (num.length !== 13) {
-         // On peut loguer l'erreur ou juste ne rien faire
-         console.warn("13 chiffres requis pour EAN13");
-         return; 
-      }
+      if (num.length !== 13 && num.length > 0) console.warn("13 chiffres requis");
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       refs.target.appendChild(svg);
@@ -86,45 +86,37 @@ function calculCheckDigit(ean12) {
 
 function telecharger() {
   const container = document.querySelector('.sheet-container');
-  
-  // On sauvegarde l'état actuel du transform
   const originalTransform = container.style.transform;
-  
-  // On reset l'échelle pour que l'image soit capturée en haute résolution (taille réelle)
   container.style.transform = "none"; 
 
   html2canvas(document.getElementById("pageSheet"), {
-    scale: 2, 
-    backgroundColor: "#ffffff", 
-    logging: false
+    scale: 2, backgroundColor: "#ffffff", logging: false
   }).then(canvas => {
     const a = document.createElement("a");
     a.download = `etiquette_${Date.now()}.png`;
     a.href = canvas.toDataURL("image/png");
     a.click();
-    
-    // On remet le zoom d'affichage
     container.style.transform = originalTransform; 
   });
 }
 
-// --- ÉCOUTEURS D'ÉVÉNEMENTS (LISTENERS) ---
-
-// Champs de saisie
+// --- ÉCOUTEURS ---
 refs.texte.addEventListener("input", generer);
 refs.type.addEventListener("change", generer);
 refs.showText.addEventListener("change", generer);
 refs.slider.addEventListener("input", updateSize);
 
-// Boutons Radio (Format & Orientation) - On doit boucler car il y en a plusieurs
+// Nouveaux écouteurs pour le titre
+refs.titleInput.addEventListener("input", updateTitle);
+refs.titleSizeSlider.addEventListener("input", updateTitle);
+
 refs.formatInputs.forEach(input => input.addEventListener("change", updatePageConfig));
 refs.orientationInputs.forEach(input => input.addEventListener("change", updatePageConfig));
 
-// Boutons Actions
 refs.printBtn.addEventListener("click", () => window.print());
 refs.downloadBtn.addEventListener("click", telecharger);
 
-// --- INITIALISATION ---
-// On lance une première fois pour afficher le code par défaut
+// Init
 updatePageConfig();
 generer();
+updateTitle(); // Init titre vide ou par défaut
