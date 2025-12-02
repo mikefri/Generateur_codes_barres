@@ -4,24 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Générateur codes barres</title>
-
-  <!-- --- AJOUTS PWA --- -->
   <meta name="theme-color" content="#89b4fa">
-  <!-- Note: manifest et icons sont référencés mais non présents dans ce fichier unique -->
 
-  <!-- Librairies -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-  <!-- Changement de CDN pour QRCode (plus stable pour la méthode toCanvas) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    /* --- STYLE.CSS INTEGRÉ --- */
     :root { 
       --bg-app: #1e1e2e; 
       --sidebar-bg: #2d2d44; 
       --text-main: #cdd6f4; 
       --accent: #89b4fa; 
+      --accent-hover: #b4befe;
+      --tab-inactive: #45475a;
     }
 
     body { 
@@ -38,7 +34,7 @@
     .sidebar {
       width: 300px; 
       background: var(--sidebar-bg); 
-      padding: 30px 20px;
+      padding: 20px; /* Un peu moins de padding pour laisser place aux onglets */
       display: flex; flex-direction: column; gap: 15px;
       box-shadow: 4px 0 15px rgba(0,0,0,0.2); 
       z-index: 10; 
@@ -46,25 +42,73 @@
     }
 
     .app-title {
-      margin: 0; 
+      margin: 0 0 15px 0; 
       color: var(--accent); 
       font-size: 1.2rem;
+      text-align: center;
     }
 
+    /* --- NOUVEAU : STYLE DES ONGLETS --- */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid var(--tab-inactive);
+      padding-bottom: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      color: #a6adc8;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 6px;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: white;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #1e1e2e;
+    }
+
+    /* Contenu des onglets */
+    .tab-content {
+      display: none; /* Masqué par défaut */
+      flex-direction: column;
+      gap: 15px;
+      height: 100%; /* Pour que flex fonctionne bien */
+    }
+
+    .tab-content.active {
+      display: flex; /* Affiché si actif */
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- Styles existants pour les formulaires --- */
     .control-group { display: flex; flex-direction: column; gap: 5px; }
     .control-group label { font-weight: bold; font-size: 0.85rem; color: #a6adc8; }
     input[type="text"], select { 
-      padding: 10px; 
-      border-radius: 6px; 
-      border: 1px solid #45475a; 
-      background: #181825; 
-      color: white; 
-      outline: none; 
+      padding: 10px; border-radius: 6px; border: 1px solid #45475a; 
+      background: #181825; color: white; outline: none; 
     }
 
     .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; }
     .checkbox-wrapper input { accent-color: var(--accent); cursor: pointer; }
-    .divider { border: 0; border-top: 1px solid #45475a; width: 100%; }
+    .divider { border: 0; border-top: 1px solid #45475a; width: 100%; margin: 5px 0; }
 
     .radio-group { display: flex; gap: 10px; background: #181825; padding: 4px; border-radius: 6px; border: 1px solid #45475a; }
     .radio-option { flex: 1; position: relative; }
@@ -77,12 +121,11 @@
 
     /* Boutons Actions */
     .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-    button { 
+    button.action-btn { 
       padding: 12px; border-radius: 6px; border: none; 
       font-weight: bold; cursor: pointer; transition: transform 0.1s; 
     }
-    button:hover { opacity: 0.9; transform: scale(1.02); }
-
+    button.action-btn:hover { opacity: 0.9; transform: scale(1.02); }
     .btn-print { background: #a6e3a1; color: #1e1e2e; }
     .btn-download { background: #f9e2af; color: #1e1e2e; }
 
@@ -92,45 +135,25 @@
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       overflow: hidden; position: relative;
     }
-
     .sheet-container {
       transform: scale(0.60); transform-origin: center center;
       box-shadow: 0 0 80px rgba(0,0,0,0.6);
     }
-
     .sheet {
       background: white; color: black;
-      display: flex; 
-      flex-direction: column; /* Important pour empiler Titre + Code */
-      justify-content: center; 
-      align-items: center;
-      position: relative;
-      transition: all 0.3s ease;
+      display: flex; flex-direction: column; 
+      justify-content: center; align-items: center;
+      position: relative; transition: all 0.3s ease;
     }
-
-    /* --- Style du Titre --- */
     #title-display {
-      font-family: 'Arial', sans-serif;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 20px; /* Espace entre titre et code */
-      width: 90%;
-      word-wrap: break-word; /* Coupe les mots si trop longs */
-      color: #000;
+      font-family: 'Arial', sans-serif; font-weight: bold; text-align: center;
+      margin-bottom: 20px; width: 90%; word-wrap: break-word; color: #000;
     }
-
-    /* Dimensions */
     .sheet.a4.portrait  { width: 210mm; height: 297mm; }
     .sheet.a4.landscape { width: 297mm; height: 210mm; }
     .sheet.a3.portrait  { width: 297mm; height: 420mm; }
     .sheet.a3.landscape { width: 420mm; height: 297mm; }
-
-    #barcode-wrapper { 
-      /* Suppression du transform-origin car on ne scale plus en CSS */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+    #barcode-wrapper { display: flex; justify-content: center; align-items: center; }
 
     /* --- IMPRESSION --- */
     @media print {
@@ -143,102 +166,105 @@
       .sheet { width: 100% !important; height: 100% !important; margin: 0 !important; page-break-after: always; }
     }
   </style>
-  
-  <!-- Style dynamique pour l'impression -->
   <style id="print-style"></style>
 </head>
 <body>
 
   <aside class="sidebar">
-    <h2 class="app-title">Générateur</h2>
+    <h2 class="app-title">Générateur Pro</h2>
     
-    <!-- GESTION DU TITRE -->
-    <div class="control-group">
-      <label>Titre (Haut de page)</label>
-      <input type="text" id="customTitle" placeholder="Ex: Code">
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-target="tab-generator">Générateur</button>
+      <button class="tab-btn" data-target="tab-tools">Outils</button>
     </div>
 
-    <div class="control-group">
-      <label>Taille du Titre</label>
-      <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3">
-    </div>
-    
-    <hr class="divider">
+    <div id="tab-generator" class="tab-content active">
+      
+      <div class="control-group">
+        <label>Titre (Haut de page)</label>
+        <input type="text" id="customTitle" placeholder="Ex: Code">
+      </div>
+      <div class="control-group">
+        <label>Taille du Titre</label>
+        <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3">
+      </div>
+      
+      <hr class="divider">
 
-    <div class="control-group">
-      <label>Code (Données)</label>
-      <input type="text" id="texte" value="12345678" placeholder="Données...">
-    </div>
+      <div class="control-group">
+        <label>Code (Données)</label>
+        <input type="text" id="texte" value="12345678" placeholder="Données...">
+      </div>
 
-    <div class="control-group">
-      <label>Type de Code</label>
-      <select id="type">
-        <option value="CODE128" selected>Code 128</option>
-        <option value="EAN13">EAN-13</option>
-        <option value="QRCODE">QR Code</option>
-      </select>
-    </div>
+      <div class="control-group">
+        <label>Type de Code</label>
+        <select id="type">
+          <option value="CODE128" selected>Code 128</option>
+          <option value="EAN13">EAN-13</option>
+          <option value="QRCODE">QR Code</option>
+        </select>
+      </div>
 
-    <label class="checkbox-wrapper">
-      <input type="checkbox" id="showText" checked>
-      <span>Afficher chiffres sous le code</span>
-    </label>
+      <label class="checkbox-wrapper">
+        <input type="checkbox" id="showText" checked>
+        <span>Afficher chiffres sous le code</span>
+      </label>
 
-    <hr class="divider">
+      <hr class="divider">
 
-    <div class="control-group">
-      <label>Format Papier</label>
-      <div class="radio-group">
-        <label class="radio-option">
-          <input type="radio" name="format" value="a4" checked>
-          <span>A4</span>
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="format" value="a3">
-          <span>A3</span>
-        </label>
+      <div class="control-group">
+        <label>Format Papier</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="format" value="a4" checked>
+            <span>A4</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="format" value="a3">
+            <span>A3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Orientation</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="orientation" value="portrait" checked>
+            <span>Portrait</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="orientation" value="landscape">
+            <span>Paysage</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Taille du Code</label>
+        <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1">
+      </div>
+
+      <div class="actions">
+        <button class="action-btn btn-print" id="printBtn">🖨️ IMPRIMER</button>
+        <button class="action-btn btn-download" id="downloadBtn">💾 TÉLÉCHARGER PNG</button>
       </div>
     </div>
-
-    <div class="control-group">
-      <label>Orientation</label>
-      <div class="radio-group">
-        <label class="radio-option">
-          <input type="radio" name="orientation" value="portrait" checked>
-          <span>Portrait</span>
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="orientation" value="landscape">
-          <span>Paysage</span>
-        </label>
+    <div id="tab-tools" class="tab-content">
+      <div style="text-align: center; color: #a6adc8; margin-top: 50px;">
+        <h3>🛠️ Outils Avancés</h3>
+        <p style="font-size: 0.9rem;">Cette section est prête pour vos futures fonctionnalités.</p>
+        <p style="opacity: 0.5;">(Import CSV, Base de données, etc.)</p>
       </div>
     </div>
-
-    <div class="control-group">
-      <label>Taille du Code</label>
-      <!-- Ajustement des min/max pour correspondre au nouveau système de scaling direct -->
-      <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1">
-    </div>
-
-    <div class="actions">
-      <button class="btn-print" id="printBtn">🖨️ IMPRIMER</button>
-      <button class="btn-download" id="downloadBtn">💾 TÉLÉCHARGER PNG</button>
-    </div>
-
-    <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; color: #a6adc8; opacity: 0.6;">
-      Créé par micfri
-    </div>
-  </aside>
+    </aside>
 
   <main class="main-content">
     <div style="position:absolute; top:20px; color:#666; font-size:12px;">Aperçu écran (60%)</div>
     
     <div class="sheet-container" id="capture-zone">
       <div id="pageSheet" class="sheet a4 portrait">
-        
-        <!-- ZONE D'AFFICHAGE DU TITRE -->
         <div id="title-display"></div>
-
         <div id="barcode-wrapper">
           <div id="canvas-target"></div>
         </div>
@@ -246,7 +272,6 @@
     </div>
   </main>
 
-  <!-- --- SCRIPT.JS INTEGRÉ --- -->
   <script>
     const refs = {
       texte: document.getElementById("texte"),
@@ -254,29 +279,43 @@
       showText: document.getElementById("showText"),
       slider: document.getElementById("sizeSlider"),
       target: document.getElementById("canvas-target"),
-      wrapper: document.getElementById("barcode-wrapper"),
       pageSheet: document.getElementById("pageSheet"),
       printStyle: document.getElementById("print-style"),
       printBtn: document.getElementById("printBtn"),
       downloadBtn: document.getElementById("downloadBtn"),
       formatInputs: document.querySelectorAll('input[name="format"]'),
       orientationInputs: document.querySelectorAll('input[name="orientation"]'),
-      
-      // RÉFÉRENCES TITRE
       titleInput: document.getElementById("customTitle"),
       titleSizeSlider: document.getElementById("titleSizeSlider"),
-      titleDisplay: document.getElementById("title-display")
+      titleDisplay: document.getElementById("title-display"),
+      
+      // Références Onglets
+      tabs: document.querySelectorAll('.tab-btn'),
+      tabContents: document.querySelectorAll('.tab-content')
     };
 
-    // --- GESTION DU TITRE ---
+    // --- GESTION DES ONGLETS ---
+    refs.tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // 1. Retirer la classe active de tous les boutons et contenus
+        refs.tabs.forEach(t => t.classList.remove('active'));
+        refs.tabContents.forEach(c => c.classList.remove('active'));
+
+        // 2. Ajouter la classe active au bouton cliqué
+        tab.classList.add('active');
+
+        // 3. Afficher le contenu correspondant
+        const targetId = tab.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+
+    // --- RESTE DU CODE (IDENTIQUE) ---
     function updateTitle() {
-      // Met à jour le texte
       refs.titleDisplay.textContent = refs.titleInput.value;
-      // Met à jour la taille (en 'em' pour que ce soit relatif)
       refs.titleDisplay.style.fontSize = refs.titleSizeSlider.value + 'em';
     }
 
-    // --- FONCTIONS EXISTANTES ---
     function updatePageConfig() {
       const format = document.querySelector('input[name="format"]:checked').value;
       const orientation = document.querySelector('input[name="orientation"]:checked').value;
@@ -288,9 +327,6 @@
       const texte = refs.texte.value.trim();
       const type = refs.type.value;
       const displayValue = refs.showText.checked;
-      
-      // Récupération de l'échelle (scale) définie par le slider
-      // On l'applique directement aux propriétés de génération
       const scale = parseFloat(refs.slider.value);
 
       refs.target.innerHTML = "";
@@ -301,55 +337,29 @@
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           refs.target.appendChild(svg);
           JsBarcode(svg, texte, {
-            format: "CODE128", 
-            lineColor: "#000", 
-            background: "#ffffff",
-            displayValue: displayValue, 
-            // Application du facteur d'échelle
-            fontSize: 20 * scale, 
-            height: 100 * scale, 
-            width: 2 * scale, // Scale la largeur des barres (base 2px)
-            margin: 10 * scale
+            format: "CODE128", lineColor: "#000", background: "#ffffff",
+            displayValue: displayValue, fontSize: 20 * scale, height: 100 * scale,
+            width: 2 * scale, margin: 10 * scale
           });
         } else if (type === "EAN13") {
           let num = texte.replace(/\D/g, "");
           if (num.length === 12) num += calculCheckDigit(num);
-          if (num.length !== 13 && num.length > 0) console.warn("13 chiffres requis");
-
           const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           refs.target.appendChild(svg);
           JsBarcode(svg, num, {
-            format: "EAN13", 
-            lineColor: "#000", 
-            background: "#ffffff",
-            displayValue: displayValue, 
-            // Application du facteur d'échelle
-            fontSize: 24 * scale, 
-            height: 100 * scale, 
-            width: 2 * scale, // Scale la largeur des barres (base 2px)
-            margin: 10 * scale
+            format: "EAN13", lineColor: "#000", background: "#ffffff",
+            displayValue: displayValue, fontSize: 24 * scale, height: 100 * scale,
+            width: 2 * scale, margin: 10 * scale
           });
         } else if (type === "QRCODE") {
-          if (typeof QRCode === 'undefined') {
-            console.error("La librairie QRCode n'est toujours pas chargée. Vérifiez votre connexion.");
-            refs.target.innerHTML = "<div style='color:red;'>Erreur: Librairie QRCode non chargée.</div>";
-            return;
-          }
           const canvas = document.createElement("canvas");
           refs.target.appendChild(canvas);
-          
-          // Calcul de la largeur avec Math.floor pour éviter les décimales
           const qrWidth = Math.floor(300 * scale);
-          
           QRCode.toCanvas(canvas, texte || "https://exemple.com", {
-            width: qrWidth, 
-            margin: 1, 
-            color: { dark: "#000000", light: "#ffffff" }
-          }, function (error) {
-            if (error) console.error("Erreur génération QR:", error);
-          });
+            width: qrWidth, margin: 1, color: { dark: "#000000", light: "#ffffff" }
+          }, function (error) { if (error) console.error(error); });
         }
-      } catch (e) { console.warn("Erreur générale:", e); }
+      } catch (e) { console.warn("Erreur:", e); }
     }
 
     function calculCheckDigit(ean12) {
@@ -363,10 +373,8 @@
       const container = document.querySelector('.sheet-container');
       const originalTransform = container.style.transform;
       container.style.transform = "none"; 
-
-      html2canvas(document.getElementById("pageSheet"), {
-        scale: 2, backgroundColor: "#ffffff", logging: false
-      }).then(canvas => {
+      html2canvas(document.getElementById("pageSheet"), { scale: 2, backgroundColor: "#ffffff", logging: false })
+      .then(canvas => {
         const a = document.createElement("a");
         a.download = `etiquette_${Date.now()}.png`;
         a.href = canvas.toDataURL("image/png");
@@ -375,30 +383,18 @@
       });
     }
 
-    // --- ÉCOUTEURS ---
     refs.texte.addEventListener("input", generer);
     refs.type.addEventListener("change", generer);
     refs.showText.addEventListener("change", generer);
-    
-    // Le slider déclenche maintenant une régénération complète pour ajuster le flux (layout)
     refs.slider.addEventListener("input", generer);
-
-    // Nouveaux écouteurs pour le titre
     refs.titleInput.addEventListener("input", updateTitle);
     refs.titleSizeSlider.addEventListener("input", updateTitle);
-
     refs.formatInputs.forEach(input => input.addEventListener("change", updatePageConfig));
     refs.orientationInputs.forEach(input => input.addEventListener("change", updatePageConfig));
-
     refs.printBtn.addEventListener("click", () => window.print());
     refs.downloadBtn.addEventListener("click", telecharger);
 
-    // Init au chargement complet de la fenêtre pour s'assurer que les librairies sont là
-    window.addEventListener('load', () => {
-      updatePageConfig();
-      generer();
-      updateTitle();
-    });
+    window.addEventListener('load', () => { updatePageConfig(); generer(); updateTitle(); });
   </script>
 </body>
 </html>
