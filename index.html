@@ -6,9 +6,11 @@
   <title>Générateur codes barres</title>
   <meta name="theme-color" content="#89b4fa">
 
+  <!-- Librairies -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root { 
@@ -18,6 +20,7 @@
       --accent: #89b4fa; 
       --accent-hover: #b4befe;
       --tab-inactive: #45475a;
+      --success: #a6e3a1;
     }
 
     body { 
@@ -32,7 +35,7 @@
 
     /* --- SIDEBAR --- */
     .sidebar {
-      width: 300px; 
+      width: 320px; 
       background: var(--sidebar-bg); 
       padding: 20px;
       display: flex; flex-direction: column; gap: 15px;
@@ -55,6 +58,7 @@
       margin-bottom: 10px;
       border-bottom: 2px solid var(--tab-inactive);
       padding-bottom: 10px;
+      flex-shrink: 0;
     }
     .tab-btn {
       flex: 1; padding: 8px; background: transparent; border: none;
@@ -70,8 +74,6 @@
 
     /* --- FORMULAIRES & SLIDERS --- */
     .control-group { display: flex; flex-direction: column; gap: 5px; }
-    
-    /* Nouveau : Header pour Label + Valeur */
     .range-header { display: flex; justify-content: space-between; align-items: center; }
     .range-header label { font-weight: bold; font-size: 0.85rem; color: #a6adc8; }
     .range-value { font-size: 0.85rem; color: var(--accent); font-weight: bold; font-family: monospace; }
@@ -80,10 +82,7 @@
       padding: 10px; border-radius: 6px; border: 1px solid #45475a; 
       background: #181825; color: white; outline: none; 
     }
-
-    /* Style des sliders pour afficher les graduations */
     input[type="range"] { accent-color: var(--accent); cursor: pointer; }
-
     .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; }
     .checkbox-wrapper input { accent-color: var(--accent); cursor: pointer; }
     .divider { border: 0; border-top: 1px solid #45475a; width: 100%; margin: 5px 0; }
@@ -106,6 +105,28 @@
     .btn-print { background: #a6e3a1; color: #1e1e2e; }
     .btn-download { background: #f9e2af; color: #1e1e2e; }
 
+    /* --- NOUVEAU : STYLE IMPORT EXCEL --- */
+    .drop-zone {
+      border: 2px dashed #45475a;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: #a6adc8;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .drop-zone:hover { border-color: var(--accent); color: white; background: rgba(137, 180, 250, 0.1); }
+    .hidden-input { display: none; }
+    
+    .status-card {
+        background: #181825;
+        border: 1px solid #45475a;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+        display: none; /* Masqué par défaut */
+    }
+
     /* --- APERÇU --- */
     .main-content {
       flex: 1; background: #181825;
@@ -119,18 +140,48 @@
     .sheet {
       background: white; color: black;
       display: flex; flex-direction: column; 
-      justify-content: center; align-items: center;
+      align-items: center;
       position: relative; transition: all 0.3s ease;
+      padding: 20px; 
+      box-sizing: border-box;
     }
+    
+    /* --- Styles Grid pour le mode planche --- */
+    #canvas-target {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+    #canvas-target.grid-mode {
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 15px;
+    }
+    .barcode-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+    }
+
     #title-display {
       font-family: 'Arial', sans-serif; font-weight: bold; text-align: center;
       margin-bottom: 20px; width: 90%; word-wrap: break-word; color: #000;
     }
-    .sheet.a4.portrait  { width: 210mm; height: 297mm; }
-    .sheet.a4.landscape { width: 297mm; height: 210mm; }
-    .sheet.a3.portrait  { width: 297mm; height: 420mm; }
-    .sheet.a3.landscape { width: 420mm; height: 297mm; }
-    #barcode-wrapper { display: flex; justify-content: center; align-items: center; }
+    
+    /* Dimensions Papier */
+    .sheet.a4.portrait  { width: 210mm; min-height: 297mm; } 
+    .sheet.a4.landscape { width: 297mm; min-height: 210mm; }
+    .sheet.a3.portrait  { width: 297mm; min-height: 420mm; }
+    .sheet.a3.landscape { width: 420mm; min-height: 297mm; }
+    
+    #barcode-wrapper { 
+        width: 100%;
+        display: flex; 
+        justify-content: center; 
+    }
 
     /* --- IMPRESSION --- */
     @media print {
@@ -140,7 +191,8 @@
         padding: 0 !important; margin: 0 !important; background: white !important; display: block !important; overflow: visible !important;
       }
       .sheet-container { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; height: 100% !important; }
-      .sheet { width: 100% !important; height: 100% !important; margin: 0 !important; page-break-after: always; }
+      .sheet { width: 100% !important; min-height: 100% !important; margin: 0 !important; page-break-after: always; }
+      .barcode-item { break-inside: avoid; }
     }
   </style>
   <style id="print-style"></style>
@@ -151,15 +203,16 @@
     <h2 class="app-title">Générateur Pro</h2>
     
     <div class="tabs-nav">
-      <button class="tab-btn active" data-target="tab-generator">Générateur</button>
-      <button class="tab-btn" data-target="tab-tools">Outils</button>
+      <button class="tab-btn active" id="btn-tab-gen" data-target="tab-generator">Générateur</button>
+      <button class="tab-btn" id="btn-tab-tools" data-target="tab-tools">Import Excel</button>
     </div>
 
+    <!-- --- ONGLET 1 : GÉNÉRATEUR --- -->
     <div id="tab-generator" class="tab-content active">
       
       <div class="control-group">
         <label>Titre (Haut de page)</label>
-        <input type="text" id="customTitle" placeholder="Ex: Code">
+        <input type="text" id="customTitle" placeholder="Ex: Inventaire 2024">
       </div>
       <div class="control-group">
         <div class="range-header">
@@ -169,8 +222,7 @@
         <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3" list="tickmarks-title">
         <datalist id="tickmarks-title">
           <option value="1"></option><option value="2"></option><option value="3"></option>
-          <option value="4"></option><option value="5"></option><option value="6"></option>
-          <option value="7"></option><option value="8"></option>
+          <option value="4"></option><option value="5"></option><option value="6"></option><option value="7"></option><option value="8"></option>
         </datalist>
       </div>
       
@@ -238,16 +290,31 @@
       </div>
 
       <div class="actions">
-        <button class="action-btn btn-print" id="printBtn">🖨️ IMPRIMER</button>
+        <button class="action-btn btn-print" id="printBtn">🖨️ IMPRIMER PLANCHE</button>
         <button class="action-btn btn-download" id="downloadBtn">💾 TÉLÉCHARGER PNG</button>
       </div>
     </div>
 
-
+    <!-- --- ONGLET 2 : OUTILS EXCEL (SIMPLIFIÉ) --- -->
     <div id="tab-tools" class="tab-content">
-      <div style="text-align: center; color: #a6adc8; margin-top: 50px;">
-        <h3>🛠️ Outils Avancés</h3>
-        <p style="font-size: 0.9rem;">Cette section est prête pour vos futures fonctionnalités.</p>
+      <div class="control-group">
+        <label>Importer un fichier (.xlsx, .xls)</label>
+        <label class="drop-zone" id="dropZone">
+          📂 Cliquez ou glissez un fichier ici
+          <input type="file" id="excelInput" class="hidden-input" accept=".xlsx, .xls">
+        </label>
+      </div>
+
+      <!-- Zone de statut (Remplace la liste) -->
+      <div id="importStatus" class="status-card">
+        <div style="color: var(--success); font-weight: bold; margin-bottom: 5px;">✅ Fichier chargé !</div>
+        <div id="importCount" style="color: #cdd6f4; font-size: 0.9rem;"></div>
+        <div style="color: #a6adc8; font-size: 0.8rem; margin-top: 5px;">La planche a été générée automatiquement.</div>
+      </div>
+
+      <div class="actions" style="margin-top: auto;">
+         <button class="action-btn" id="regenerateBatchBtn" style="background:var(--accent); color:#1e1e2e; display:none;">🔄 VOIR LA PLANCHE</button>
+         <button class="action-btn" id="clearDataBtn" style="background:#f38ba8; color:#1e1e2e; display:none;">🗑️ EFFACER DONNÉES</button>
       </div>
     </div>
   </aside>
@@ -272,7 +339,7 @@
       showText: document.getElementById("showText"),
       
       slider: document.getElementById("sizeSlider"),
-      sliderVal: document.getElementById("codeSizeVal"), // Afficheur valeur code
+      sliderVal: document.getElementById("codeSizeVal"),
       
       target: document.getElementById("canvas-target"),
       pageSheet: document.getElementById("pageSheet"),
@@ -284,27 +351,45 @@
       
       titleInput: document.getElementById("customTitle"),
       titleSizeSlider: document.getElementById("titleSizeSlider"),
-      titleSizeVal: document.getElementById("titleSizeVal"), // Afficheur valeur titre
+      titleSizeVal: document.getElementById("titleSizeVal"),
       titleDisplay: document.getElementById("title-display"),
       
       tabs: document.querySelectorAll('.tab-btn'),
-      tabContents: document.querySelectorAll('.tab-content')
+      tabContents: document.querySelectorAll('.tab-content'),
+
+      excelInput: document.getElementById("excelInput"),
+      dropZone: document.getElementById("dropZone"),
+      // Elements simplifiés
+      importStatus: document.getElementById("importStatus"),
+      importCount: document.getElementById("importCount"),
+      clearDataBtn: document.getElementById("clearDataBtn"),
+      regenerateBatchBtn: document.getElementById("regenerateBatchBtn"),
+      btnTabGen: document.getElementById("btn-tab-gen")
+    };
+
+    // --- VARIABLES D'ÉTAT ---
+    let appState = {
+        mode: 'single', // 'single' ou 'batch'
+        batchData: []   // Stocke les codes importés
     };
 
     // --- GESTION DES ONGLETS ---
-    refs.tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        refs.tabs.forEach(t => t.classList.remove('active'));
-        refs.tabContents.forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.getAttribute('data-target')).classList.add('active');
+    function switchTab(targetId) {
+      refs.tabs.forEach(t => {
+        if(t.getAttribute('data-target') === targetId) t.classList.add('active');
+        else t.classList.remove('active');
       });
-    });
+      refs.tabContents.forEach(c => {
+        if(c.id === targetId) c.classList.add('active');
+        else c.classList.remove('active');
+      });
+    }
+    refs.tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.getAttribute('data-target'))));
 
+    // --- FONCTIONS GENERATEUR ---
     function updateTitle() {
       refs.titleDisplay.textContent = refs.titleInput.value;
       refs.titleDisplay.style.fontSize = refs.titleSizeSlider.value + 'em';
-      // Mise à jour de l'affichage de la valeur numérique
       refs.titleSizeVal.textContent = refs.titleSizeSlider.value;
     }
 
@@ -315,46 +400,82 @@
       refs.printStyle.innerHTML = `@page { size: ${format.toUpperCase()} ${orientation}; margin: 0; }`;
     }
 
+    // Fonction principale de génération
     function generer() {
-      const texte = refs.texte.value.trim();
-      const type = refs.type.value;
-      const displayValue = refs.showText.checked;
-      const scale = parseFloat(refs.slider.value);
-      
-      // Mise à jour de l'affichage de la valeur numérique
-      refs.sliderVal.textContent = scale;
+        const scale = parseFloat(refs.slider.value);
+        refs.sliderVal.textContent = scale;
+        
+        // Nettoyage
+        refs.target.innerHTML = "";
 
-      refs.target.innerHTML = "";
-      if (!texte && type !== "QRCODE") return;
+        if (appState.mode === 'batch' && appState.batchData.length > 0) {
+            // --- MODE PLANCHE (BATCH) ---
+            refs.target.classList.add('grid-mode');
+            
+            // On boucle sur tous les codes importés
+            appState.batchData.forEach(code => {
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "barcode-item";
+                
+                // On crée un conteneur pour le code (SVG ou Canvas)
+                const container = createBarcodeElement(code, scale);
+                if (container) itemDiv.appendChild(container);
+                
+                refs.target.appendChild(itemDiv);
+            });
 
-      try {
-        if (type === "CODE128") {
-          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          refs.target.appendChild(svg);
-          JsBarcode(svg, texte, {
-            format: "CODE128", lineColor: "#000", background: "#ffffff",
-            displayValue: displayValue, fontSize: 20 * scale, height: 100 * scale,
-            width: 2 * scale, margin: 10 * scale
-          });
-        } else if (type === "EAN13") {
-          let num = texte.replace(/\D/g, "");
-          if (num.length === 12) num += calculCheckDigit(num);
-          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          refs.target.appendChild(svg);
-          JsBarcode(svg, num, {
-            format: "EAN13", lineColor: "#000", background: "#ffffff",
-            displayValue: displayValue, fontSize: 24 * scale, height: 100 * scale,
-            width: 2 * scale, margin: 10 * scale
-          });
-        } else if (type === "QRCODE") {
-          const canvas = document.createElement("canvas");
-          refs.target.appendChild(canvas);
-          const qrWidth = Math.floor(300 * scale);
-          QRCode.toCanvas(canvas, texte || "https://exemple.com", {
-            width: qrWidth, margin: 1, color: { dark: "#000000", light: "#ffffff" }
-          }, function (error) { if (error) console.error(error); });
+        } else {
+            // --- MODE UNIQUE ---
+            refs.target.classList.remove('grid-mode');
+            const texte = refs.texte.value.trim();
+            if (!texte && refs.type.value !== "QRCODE") return;
+            
+            const element = createBarcodeElement(texte, scale);
+            if (element) refs.target.appendChild(element);
         }
-      } catch (e) { console.warn("Erreur:", e); }
+    }
+
+    // Helper pour créer un seul élément barcode (réutilisé par le batch et le single)
+    function createBarcodeElement(text, scale) {
+        const type = refs.type.value;
+        const displayValue = refs.showText.checked;
+        
+        try {
+            if (type === "CODE128") {
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                JsBarcode(svg, text, {
+                    format: "CODE128", lineColor: "#000", background: "#ffffff",
+                    displayValue: displayValue, fontSize: 14 * scale, height: 50 * scale,
+                    width: 2 * scale, margin: 5 * scale // Marges réduites pour le batch
+                });
+                return svg;
+            } else if (type === "EAN13") {
+                let num = text.replace(/\D/g, "");
+                if (num.length === 12) num += calculCheckDigit(num);
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                JsBarcode(svg, num, {
+                    format: "EAN13", lineColor: "#000", background: "#ffffff",
+                    displayValue: displayValue, fontSize: 14 * scale, height: 50 * scale,
+                    width: 2 * scale, margin: 5 * scale
+                });
+                return svg;
+            } else if (type === "QRCODE") {
+                const canvas = document.createElement("canvas");
+                const qrWidth = Math.floor(150 * scale); // Base plus petite pour le batch
+                QRCode.toCanvas(canvas, text || "https://exemple.com", {
+                    width: qrWidth, margin: 1, color: { dark: "#000000", light: "#ffffff" }
+                }, function (error) { if (error) console.error(error); });
+                return canvas;
+            }
+        } catch (e) {
+            console.warn("Erreur génération pour " + text, e);
+            const errDiv = document.createElement("div");
+            errDiv.style.color = "red";
+            errDiv.style.fontSize = "10px";
+            errDiv.innerText = "Inv.";
+            return errDiv;
+        }
+        return null;
     }
 
     function calculCheckDigit(ean12) {
@@ -364,30 +485,101 @@
       return rem === 0 ? 0 : 10 - rem;
     }
 
-    function telecharger() {
-      const container = document.querySelector('.sheet-container');
-      const originalTransform = container.style.transform;
-      container.style.transform = "none"; 
-      html2canvas(document.getElementById("pageSheet"), { scale: 2, backgroundColor: "#ffffff", logging: false })
-      .then(canvas => {
-        const a = document.createElement("a");
-        a.download = `etiquette_${Date.now()}.png`;
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-        container.style.transform = originalTransform; 
-      });
+    // --- FONCTIONS IMPORT EXCEL ---
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        let codes = json.map(row => row[0]).filter(cell => cell !== undefined && cell !== null && cell !== "");
+        
+        // Mise à jour de l'état
+        appState.batchData = codes;
+        appState.mode = 'batch'; 
+
+        updateImportStatus(codes.length);
+        
+        // On bascule sur la vue générateur
+        switchTab('tab-generator');
+        generer();
+      };
+      reader.readAsBinaryString(file);
     }
 
-    refs.texte.addEventListener("input", generer);
+    function updateImportStatus(count) {
+        if(count > 0) {
+            refs.importStatus.style.display = 'block';
+            refs.importCount.textContent = `${count} codes détectés.`;
+            refs.regenerateBatchBtn.style.display = 'inline-block';
+            refs.clearDataBtn.style.display = 'inline-block';
+        } else {
+            resetImportUI();
+        }
+    }
+
+    function resetImportUI() {
+        refs.importStatus.style.display = 'none';
+        refs.regenerateBatchBtn.style.display = 'none';
+        refs.clearDataBtn.style.display = 'none';
+        refs.excelInput.value = "";
+    }
+
+    // --- LISTENERS ---
+    // Si l'utilisateur tape du texte manuellement, on repasse en mode single
+    refs.texte.addEventListener("input", () => {
+        appState.mode = 'single';
+        generer();
+    });
+
     refs.type.addEventListener("change", generer);
     refs.showText.addEventListener("change", generer);
     refs.slider.addEventListener("input", generer);
     refs.titleInput.addEventListener("input", updateTitle);
     refs.titleSizeSlider.addEventListener("input", updateTitle);
+    
     refs.formatInputs.forEach(input => input.addEventListener("change", updatePageConfig));
     refs.orientationInputs.forEach(input => input.addEventListener("change", updatePageConfig));
+    
     refs.printBtn.addEventListener("click", () => window.print());
-    refs.downloadBtn.addEventListener("click", telecharger);
+    refs.downloadBtn.addEventListener("click", () => {
+        const container = document.querySelector('.sheet-container');
+        const originalTransform = container.style.transform;
+        container.style.transform = "none"; 
+        html2canvas(document.getElementById("pageSheet"), { scale: 2, backgroundColor: "#ffffff", logging: false })
+        .then(canvas => {
+            const a = document.createElement("a");
+            a.download = `etiquette_${Date.now()}.png`;
+            a.href = canvas.toDataURL("image/png");
+            a.click();
+            container.style.transform = originalTransform; 
+        });
+    });
+
+    // Excel
+    refs.excelInput.addEventListener("change", handleFile);
+    
+    refs.clearDataBtn.addEventListener("click", () => {
+      appState.batchData = [];
+      appState.mode = 'single';
+      resetImportUI();
+      generer(); // Vide la planche
+    });
+    
+    // Bouton pour forcer le retour au mode planche
+    refs.regenerateBatchBtn.addEventListener("click", () => {
+        if(appState.batchData.length > 0) {
+            appState.mode = 'batch';
+            switchTab('tab-generator');
+            generer();
+        }
+    });
 
     window.addEventListener('load', () => { updatePageConfig(); generer(); updateTitle(); });
   </script>
