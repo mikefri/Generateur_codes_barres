@@ -509,8 +509,8 @@
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 JsBarcode(svg, text, {
                     format: "CODE128", lineColor: "#000", background: "#ffffff",
-                    displayValue: displayValue, fontSize: 14 * scale, height: 50 * scale,
-                    width: 2 * scale, margin: 5 * scale
+                    displayValue: displayValue, fontSize: 20 * scale, height: 100 * scale,
+                    width: 2 * scale, margin: 10 * scale
                 });
                 return svg;
             } else if (type === "EAN13") {
@@ -519,13 +519,13 @@
                 const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                 JsBarcode(svg, num, {
                     format: "EAN13", lineColor: "#000", background: "#ffffff",
-                    displayValue: displayValue, fontSize: 14 * scale, height: 50 * scale,
-                    width: 2 * scale, margin: 5 * scale
+                    displayValue: displayValue, fontSize: 24 * scale, height: 100 * scale,
+                    width: 2 * scale, margin: 10 * scale
                 });
                 return svg;
             } else if (type === "QRCODE") {
                 const canvas = document.createElement("canvas");
-                const qrWidth = Math.floor(150 * scale);
+                const qrWidth = Math.floor(300 * scale);
                 QRCode.toCanvas(canvas, text || "https://exemple.com", {
                     width: qrWidth, margin: 1, color: { dark: "#000000", light: "#ffffff" }
                 }, function (error) { if (error) console.error(error); });
