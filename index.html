@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Générateur Codes Barres 2025</title>
-  <meta name="theme-color" content="#89b4fa">
+  <title>Générateur Codes Barres Pro</title>
+  <meta name="theme-color" content="#0f172a">
 
   <!-- Polices Modernes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Librairies -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -19,33 +19,29 @@
 
   <style>
     :root { 
-      /* Palette 2025 "Deep Space" */
-      --bg-dark: #0f1016;
-      --glass-surface: rgba(30, 30, 40, 0.6);
-      --glass-border: rgba(255, 255, 255, 0.08);
+      /* Palette Pro SaaS (Slate) */
+      --bg-app: #0f172a;       /* Fond principal très sombre */
+      --bg-sidebar: #1e293b;   /* Sidebar légèrement plus claire */
+      --bg-panel: #334155;     /* Fond des inputs */
       
-      --text-main: #e2e8f0; 
-      --text-muted: #94a3b8;
+      --border-subtle: #334155;
+      --border-focus: #3b82f6;
+
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
       
-      --accent: #6366f1; /* Indigo vibrant */
-      --accent-glow: rgba(99, 102, 241, 0.4);
-      --accent-hover: #818cf8;
+      --primary: #3b82f6;      /* Bleu standard professionnel */
+      --primary-hover: #2563eb;
       
       --success: #10b981;
       --danger: #ef4444;
 
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 20px;
+      --radius: 6px; /* Arrondis plus petits pour un look plus "logiciel" */
     }
 
     body { 
-      font-family: 'Inter', sans-serif; 
-      background-color: var(--bg-dark);
-      /* Fond Mesh Gradient subtil */
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-app);
       color: var(--text-main); 
       margin: 0; padding: 0; 
       height: 100vh; 
@@ -53,178 +49,195 @@
       overflow: hidden; 
     }
 
-    /* --- SCROLLBAR MODERNE --- */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    /* --- SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-app); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-panel); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-    /* --- SIDEBAR GLASSMORPHISM --- */
+    /* --- SIDEBAR --- */
     .sidebar {
-      width: 340px; 
-      background: var(--glass-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-right: 1px solid var(--glass-border);
-      padding: 24px;
-      display: flex; flex-direction: column; gap: 20px;
+      width: 320px; 
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      padding: 0; /* Padding géré en interne */
+      display: flex; flex-direction: column;
       z-index: 10; 
       overflow-y: auto;
-      box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+
+    .sidebar-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-sidebar);
+      position: sticky; top: 0; z-index: 20;
     }
 
     .app-title {
-      margin: 0 0 10px 0; 
+      margin: 0; 
       color: #fff;
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: -0.02em;
+      font-weight: 600;
+      font-size: 1rem;
       display: flex; align-items: center; gap: 10px;
     }
-    .app-title::before {
-      content: ''; display: block; width: 12px; height: 12px;
-      background: var(--accent); border-radius: 50%;
-      box-shadow: 0 0 10px var(--accent);
+    .app-icon {
+      width: 24px; height: 24px; background: var(--primary);
+      border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: bold; color: white;
     }
 
-    /* --- ONGLETS STYLE "SEGMENTED CONTROL" --- */
+    .sidebar-content {
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 24px;
+    }
+
+    /* --- ONGLETS --- */
     .tabs-nav {
       display: flex;
-      background: rgba(0,0,0,0.3);
-      padding: 4px;
-      border-radius: var(--radius-md);
-      margin-bottom: 10px;
-      border: 1px solid var(--glass-border);
+      background: #0f172a;
+      padding: 3px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-subtle);
     }
     .tab-btn {
       flex: 1; 
       padding: 8px; 
       background: transparent; 
       border: none;
-      color: var(--text-muted); 
+      color: var(--text-secondary); 
       cursor: pointer; 
-      font-weight: 600;
+      font-weight: 500;
       font-size: 0.85rem;
-      font-family: inherit;
-      border-radius: var(--radius-sm); 
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 4px; 
+      transition: all 0.15s ease;
     }
     .tab-btn:hover { color: #fff; }
     .tab-btn.active { 
-      background: var(--glass-border); /* Effet léger */
-      background: #2d2d3a;
+      background: var(--bg-panel);
       color: #fff; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
 
     .tab-content { display: none; flex-direction: column; gap: 20px; height: 100%; }
-    .tab-content.active { display: flex; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-content.active { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* --- INPUTS & CONTROLS --- */
-    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    /* --- FORMULAIRES --- */
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
     
     .range-header { display: flex; justify-content: space-between; align-items: center; }
-    .range-header label { font-weight: 500; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .range-value { font-size: 0.8rem; color: var(--accent); font-weight: 700; font-family: 'Inter', monospace; background: rgba(99, 102, 241, 0.1); padding: 2px 6px; border-radius: 4px; }
+    .range-header label, .control-group label { 
+      font-weight: 500; font-size: 0.8rem; color: var(--text-secondary); 
+    }
+    .range-value { 
+      font-size: 0.75rem; color: var(--text-main); font-family: monospace; 
+      background: var(--bg-app); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);
+    }
 
-    /* Inputs Text & Select */
+    /* Inputs Pro */
     input[type="text"], select { 
-      padding: 12px; 
-      border-radius: var(--radius-md); 
-      border: 1px solid var(--glass-border); 
-      background: rgba(0, 0, 0, 0.3); 
+      padding: 10px 12px; 
+      border-radius: var(--radius); 
+      border: 1px solid var(--border-subtle); 
+      background: var(--bg-app); 
       color: #fff; 
       outline: none; 
+      font-size: 0.9rem;
       font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     input[type="text"]:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
     }
+    input[type="text"]::placeholder { color: #475569; }
 
-    /* Modern Range Slider */
+    /* Sliders */
     input[type="range"] {
-      -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; margin: 10px 0;
+      -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; margin: 8px 0;
     }
     input[type="range"]::-webkit-slider-runnable-track {
-      width: 100%; height: 6px; background: #333344; border-radius: 10px;
+      width: 100%; height: 4px; background: var(--bg-panel); border-radius: 2px;
     }
     input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%;
-      background: var(--accent); margin-top: -6px; box-shadow: 0 0 10px var(--accent-glow);
+      -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+      background: var(--primary); margin-top: -6px; border: 2px solid var(--bg-sidebar);
       transition: transform 0.1s;
     }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
     
     /* Checkbox & Radio */
-    .checkbox-wrapper { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 0.9rem; user-select: none; }
-    .checkbox-wrapper input { accent-color: var(--accent); width: 16px; height: 16px; }
+    .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--text-main); }
+    .checkbox-wrapper input { accent-color: var(--primary); width: 16px; height: 16px; margin: 0; }
     
-    .radio-group { display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--glass-border); }
-    .radio-option { flex: 1; position: relative; }
+    .radio-group { display: flex; gap: 1px; background: var(--border-subtle); padding: 1px; border-radius: var(--radius); overflow: hidden; }
+    .radio-option { flex: 1; position: relative; background: var(--bg-sidebar); }
     .radio-option input { position: absolute; opacity: 0; cursor: pointer; height: 100%; width: 100%; z-index: 2; margin: 0; }
     .radio-option span { 
       display: block; text-align: center; padding: 8px; 
-      border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: 0.2s; color: var(--text-muted);
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: 0.2s; color: var(--text-secondary);
     }
-    .radio-option input:checked + span { background: var(--accent); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .radio-option input:checked + span { background: var(--primary); color: #fff; }
 
-    .divider { border: 0; border-top: 1px solid var(--glass-border); width: 100%; margin: 5px 0; }
+    .divider { border: 0; border-top: 1px solid var(--border-subtle); width: 100%; margin: 5px 0; }
 
-    /* --- BOUTONS D'ACTION --- */
-    .actions { margin-top: auto; display: flex; flex-direction: column; gap: 12px; }
+    /* --- BOUTONS --- */
+    .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
     button.action-btn { 
-      padding: 14px; border-radius: var(--radius-md); border: none; 
-      font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit;
+      padding: 10px; border-radius: var(--radius); border: 1px solid transparent; 
+      font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
       display: flex; justify-content: center; align-items: center; gap: 8px;
     }
-    button.action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-    button.action-btn:active { transform: translateY(0); }
-
-    .btn-print { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-    .btn-download { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
     
-    /* Specific styles for Utility buttons */
-    #clearListBtn, #clearDataBtn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-    #clearListBtn:hover, #clearDataBtn:hover { background: var(--danger); color: white; }
-    #regenerateBatchBtn { background: var(--accent); color: white; }
+    .btn-print { background: var(--text-main); color: var(--bg-app); border: 1px solid var(--text-main); }
+    .btn-print:hover { background: #e2e8f0; }
+
+    .btn-download { background: transparent; color: var(--text-main); border: 1px solid var(--border-subtle); }
+    .btn-download:hover { border-color: var(--text-secondary); background: var(--bg-panel); }
+
+    /* Utils btns */
+    #regenerateBatchBtn { background: var(--primary); color: white; }
+    #regenerateBatchBtn:hover { background: var(--primary-hover); }
+    
+    #clearListBtn, #clearDataBtn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: transparent; }
+    #clearListBtn:hover, #clearDataBtn:hover { background: rgba(239, 68, 68, 0.2); }
 
     /* --- IMPORT EXCEL --- */
     .drop-zone {
-      border: 2px dashed var(--glass-border);
-      background: rgba(0,0,0,0.2);
-      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-subtle);
+      background: var(--bg-app);
+      border-radius: var(--radius);
       padding: 30px 20px;
       text-align: center;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.2s;
     }
-    .drop-zone:hover { border-color: var(--accent); color: #fff; background: rgba(99, 102, 241, 0.1); }
+    .drop-zone:hover { border-color: var(--primary); color: var(--primary); background: rgba(59, 130, 246, 0.05); }
     
     .status-card {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: var(--radius-md);
-        padding: 15px;
+        background: #064e3b; /* Vert foncé sombre */
+        border: 1px solid #059669;
+        border-radius: var(--radius);
+        padding: 12px;
         margin-top: 10px;
         display: none; 
     }
 
-    /* --- PREVIEW AREA (VIEWPORT) --- */
+    /* --- PREVIEW ZONE --- */
     .main-content {
       flex: 1; 
-      background: transparent; /* Voir le fond du body */
+      background: #020617; /* Fond très très sombre pour faire ressortir la feuille */
+      background-image: radial-gradient(#1e293b 1px, transparent 1px);
+      background-size: 20px 20px;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       overflow: hidden; position: relative;
     }
     
     .sheet-container {
       transform: scale(0.65); transform-origin: center center;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.5); /* Ombre profonde */
-      border-radius: 4px; /* Léger arrondi pour le réalisme papier */
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border: 1px solid #e2e8f0;
     }
     .sheet {
       background: white; color: black;
@@ -256,7 +269,7 @@
         position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; 
         padding: 0 !important; margin: 0 !important; background: white !important; display: block !important; overflow: visible !important;
       }
-      .sheet-container { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; height: 100% !important; }
+      .sheet-container { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; height: 100% !important; border: none !important; }
       .sheet { width: 100% !important; min-height: 100% !important; margin: 0 !important; page-break-after: always; }
       .barcode-item { break-inside: avoid; }
     }
@@ -266,139 +279,140 @@
 <body>
 
   <aside class="sidebar">
-    <div class="app-title">BarCode Studio <span style="font-size: 0.7em; opacity: 0.6; font-weight: normal;">v2.0</span></div>
+    <div class="sidebar-header">
+      <div class="app-title">
+        <div class="app-icon">B</div>
+        BarCode Pro
+      </div>
+    </div>
     
-    <div class="tabs-nav">
-      <button class="tab-btn active" id="btn-tab-gen" data-target="tab-generator">Éditeur</button>
-      <button class="tab-btn" id="btn-tab-tools" data-target="tab-tools">Données</button>
-    </div>
-
-    <!-- --- ONGLET 1 : GÉNÉRATEUR --- -->
-    <div id="tab-generator" class="tab-content active">
-      
-      <div class="control-group">
-        <label>Titre de page</label>
-        <input type="text" id="customTitle" placeholder="Ex: Inventaire 2025">
+    <div class="sidebar-content">
+      <div class="tabs-nav">
+        <button class="tab-btn active" id="btn-tab-gen" data-target="tab-generator">Éditeur</button>
+        <button class="tab-btn" id="btn-tab-tools" data-target="tab-tools">Données</button>
       </div>
-      <div class="control-group">
-        <div class="range-header">
-          <label>Taille Titre</label>
-          <span id="titleSizeVal" class="range-value">3</span>
+
+      <!-- --- ONGLET 1 : GÉNÉRATEUR --- -->
+      <div id="tab-generator" class="tab-content active">
+        
+        <div class="control-group">
+          <label>Titre de page</label>
+          <input type="text" id="customTitle" placeholder="Ex: Inventaire 2025">
         </div>
-        <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3" list="tickmarks-title">
-        <datalist id="tickmarks-title">
-          <option value="1"></option><option value="3"></option><option value="5"></option><option value="8"></option>
-        </datalist>
-      </div>
-      
-      <div class="divider"></div>
-
-      <div class="control-group">
-        <label>Données (Code)</label>
-        <input type="text" id="texte" value="12345678" placeholder="Saisir le code...">
-      </div>
-
-      <div class="control-group">
-        <label>Format</label>
-        <select id="type">
-          <option value="CODE128" selected>Code 128 (Standard)</option>
-          <option value="EAN13">EAN-13 (Produit)</option>
-          <option value="QRCODE">QR Code (Lien)</option>
-        </select>
-      </div>
-
-      <label class="checkbox-wrapper">
-        <input type="checkbox" id="showText" checked>
-        <span>Afficher le texte sous le code</span>
-      </label>
-
-      <div class="divider"></div>
-
-      <div class="control-group">
-        <div class="range-header">
-          <label>Taille Papier</label>
+        <div class="control-group">
+          <div class="range-header">
+            <label>Taille Titre</label>
+            <span id="titleSizeVal" class="range-value">3</span>
+          </div>
+          <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3" list="tickmarks-title">
+          <datalist id="tickmarks-title">
+            <option value="1"></option><option value="3"></option><option value="5"></option><option value="8"></option>
+          </datalist>
         </div>
-        <div class="radio-group">
-          <label class="radio-option">
-            <input type="radio" name="format" value="a4" checked>
-            <span>A4</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="format" value="a3">
-            <span>A3</span>
-          </label>
+        
+        <div class="divider"></div>
+
+        <div class="control-group">
+          <label>Données (Code)</label>
+          <input type="text" id="texte" value="12345678" placeholder="Saisir le code...">
         </div>
-      </div>
 
-      <div class="control-group">
-        <div class="radio-group">
-          <label class="radio-option">
-            <input type="radio" name="orientation" value="portrait" checked>
-            <span>Portrait</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="orientation" value="landscape">
-            <span>Paysage</span>
-          </label>
+        <div class="control-group">
+          <label>Format</label>
+          <select id="type">
+            <option value="CODE128" selected>Code 128 (Standard)</option>
+            <option value="EAN13">EAN-13 (Produit)</option>
+            <option value="QRCODE">QR Code (Lien)</option>
+          </select>
         </div>
-      </div>
 
-      <div class="control-group">
-        <div class="range-header">
-          <label>Échelle du Code</label>
-          <span id="codeSizeVal" class="range-value">1</span>
-        </div>
-        <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1" list="tickmarks-code">
-        <datalist id="tickmarks-code">
-          <option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option>
-        </datalist>
-      </div>
-
-      <div class="actions">
-        <button class="action-btn btn-print" id="printBtn">
-          <span>🖨️</span> Imprimer
-        </button>
-        <button class="action-btn btn-download" id="downloadBtn">
-          <span>💾</span> Sauvegarder PNG
-        </button>
-      </div>
-    </div>
-
-    <!-- --- ONGLET 2 : OUTILS EXCEL --- -->
-    <div id="tab-tools" class="tab-content">
-      <div class="control-group">
-        <label>Import de masse (.xlsx)</label>
-        <label class="drop-zone" id="dropZone">
-          <div style="font-size: 2rem; margin-bottom: 10px;">📂</div>
-          <div>Glissez votre fichier Excel ici</div>
-          <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 5px;">(Colonne A uniquement)</div>
-          <input type="file" id="excelInput" class="hidden-input" accept=".xlsx, .xls">
+        <label class="checkbox-wrapper">
+          <input type="checkbox" id="showText" checked>
+          <span>Afficher le texte sous le code</span>
         </label>
-      </div>
 
-      <!-- Zone de statut -->
-      <div id="importStatus" class="status-card">
-        <div style="color: var(--success); font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
-           <span>✅</span> Import réussi
+        <div class="divider"></div>
+
+        <div class="control-group">
+          <div class="range-header">
+            <label>Configuration Papier</label>
+          </div>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="format" value="a4" checked>
+              <span>A4</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="format" value="a3">
+              <span>A3</span>
+            </label>
+            <label class="radio-option" style="border-left: 1px solid var(--border-subtle);">
+              <input type="radio" name="orientation" value="portrait" checked>
+              <span>Portrait</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="orientation" value="landscape">
+              <span>Paysage</span>
+            </label>
+          </div>
         </div>
-        <div id="importCount" style="color: #fff; font-size: 0.95rem; font-weight: 600;"></div>
-        <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 5px;">La planche a été générée.</div>
+
+        <div class="control-group">
+          <div class="range-header">
+            <label>Échelle du Code</label>
+            <span id="codeSizeVal" class="range-value">1</span>
+          </div>
+          <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1" list="tickmarks-code">
+          <datalist id="tickmarks-code">
+            <option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option>
+          </datalist>
+        </div>
+
+        <div class="actions">
+          <button class="action-btn btn-print" id="printBtn">
+            Imprimer la page
+          </button>
+          <button class="action-btn btn-download" id="downloadBtn">
+            Sauvegarder en PNG
+          </button>
+        </div>
       </div>
 
-      <div class="actions" style="margin-top: auto;">
-         <button class="action-btn" id="regenerateBatchBtn" style="display:none;">
-           <span>🔄</span> Voir la planche
-         </button>
-         <button class="action-btn" id="clearDataBtn" style="display:none;">
-           <span>🗑️</span> Effacer tout
-         </button>
+      <!-- --- ONGLET 2 : OUTILS EXCEL --- -->
+      <div id="tab-tools" class="tab-content">
+        <div class="control-group">
+          <label>Import Excel de masse</label>
+          <label class="drop-zone" id="dropZone">
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">📂</div>
+            <div style="font-weight: 500;">Sélectionner un fichier .xlsx</div>
+            <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 5px;">Colonne A uniquement</div>
+            <input type="file" id="excelInput" class="hidden-input" accept=".xlsx, .xls">
+          </label>
+        </div>
+
+        <!-- Zone de statut -->
+        <div id="importStatus" class="status-card">
+          <div style="color: #fff; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem;">
+             Import terminé
+          </div>
+          <div id="importCount" style="color: #a7f3d0; font-size: 0.85rem;"></div>
+        </div>
+
+        <div class="actions" style="margin-top: auto;">
+           <button class="action-btn" id="regenerateBatchBtn" style="display:none;">
+             Voir la planche générée
+           </button>
+           <button class="action-btn" id="clearDataBtn" style="display:none;">
+             Effacer les données
+           </button>
+        </div>
       </div>
     </div>
   </aside>
 
   <main class="main-content">
-    <div style="position:absolute; top:20px; color:rgba(255,255,255,0.5); font-size:12px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
-      Aperçu en direct (65%)
+    <div style="position:absolute; top:20px; color:rgba(255,255,255,0.3); font-size:11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">
+      Espace de travail (65%)
     </div>
     
     <div class="sheet-container" id="capture-zone">
@@ -501,6 +515,7 @@
         }
     }
 
+    // Réutilisation de la fonction avec les valeurs d'origine demandées
     function createBarcodeElement(text, scale) {
         const type = refs.type.value;
         const displayValue = refs.showText.checked;
@@ -571,9 +586,9 @@
     function updateImportStatus(count) {
         if(count > 0) {
             refs.importStatus.style.display = 'block';
-            refs.importCount.textContent = `${count} codes détectés.`;
-            refs.regenerateBatchBtn.style.display = 'inline-flex';
-            refs.clearDataBtn.style.display = 'inline-flex';
+            refs.importCount.textContent = `${count} codes importés avec succès.`;
+            refs.regenerateBatchBtn.style.display = 'flex';
+            refs.clearDataBtn.style.display = 'flex';
         } else {
             resetImportUI();
         }
@@ -619,9 +634,9 @@
 
     // Effet Drag & Drop Visuel
     const dz = refs.dropZone;
-    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; dz.style.background = 'rgba(99, 102, 241, 0.2)'; });
-    dz.addEventListener('dragleave', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--glass-border)'; dz.style.background = 'rgba(0,0,0,0.2)'; });
-    dz.addEventListener('drop', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--glass-border)'; dz.style.background = 'rgba(0,0,0,0.2)'; 
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--primary)'; dz.style.background = 'rgba(59, 130, 246, 0.1)'; });
+    dz.addEventListener('dragleave', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--border-subtle)'; dz.style.background = 'var(--bg-app)'; });
+    dz.addEventListener('drop', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--border-subtle)'; dz.style.background = 'var(--bg-app)'; 
         if(e.dataTransfer.files.length) { refs.excelInput.files = e.dataTransfer.files; handleFile({target: refs.excelInput}); } 
     });
 
