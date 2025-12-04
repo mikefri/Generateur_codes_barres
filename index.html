@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GenCodeBarres</title>
+  <title>GenCodeBarres v2.1 - Stable</title>
   <meta name="theme-color" content="#0f172a">
 
   <!-- Polices Modernes -->
@@ -36,7 +36,7 @@
       --success: #10b981;
       --danger: #ef4444;
 
-      --radius: 6px; /* Arrondis plus petits pour un look plus "logiciel" */
+      --radius: 6px; 
     }
 
     body { 
@@ -60,11 +60,12 @@
       width: 320px; 
       background: var(--bg-sidebar);
       border-right: 1px solid var(--border-subtle);
-      padding: 0; /* Padding géré en interne */
+      padding: 0; 
       display: flex; flex-direction: column;
       z-index: 10; 
       overflow-y: auto;
       box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+      flex-shrink: 0;
     }
 
     .sidebar-header {
@@ -81,16 +82,11 @@
       font-size: 1rem;
       display: flex; align-items: center; gap: 10px;
     }
-    .app-icon {
-      width: 24px; height: 24px; background: var(--primary);
-      border-radius: 4px; display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: bold; color: white;
-    }
 
     .sidebar-content {
       padding: 24px;
       display: flex; flex-direction: column; gap: 24px;
-      flex: 1; /* Permet au contenu de pousser le footer */
+      flex: 1; 
     }
 
     /* --- SIDEBAR FOOTER --- */
@@ -101,12 +97,7 @@
       font-size: 0.75rem;
       color: var(--text-secondary);
       background: var(--bg-sidebar);
-      margin-top: auto; /* Pousse vers le bas */
-    }
-    .sidebar-footer span {
-      opacity: 0.6;
-      font-weight: 500;
-      letter-spacing: 0.5px;
+      margin-top: auto; 
     }
 
     /* --- ONGLETS --- */
@@ -168,7 +159,6 @@
       border-color: var(--primary);
       box-shadow: 0 0 0 1px var(--primary);
     }
-    input[type="text"]::placeholder { color: #475569; }
 
     /* Sliders */
     input[type="range"] {
@@ -216,8 +206,8 @@
     #regenerateBatchBtn { background: var(--primary); color: white; }
     #regenerateBatchBtn:hover { background: var(--primary-hover); }
     
-    #clearListBtn, #clearDataBtn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: transparent; }
-    #clearListBtn:hover, #clearDataBtn:hover { background: rgba(239, 68, 68, 0.2); }
+    #clearDataBtn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: transparent; }
+    #clearDataBtn:hover { background: rgba(239, 68, 68, 0.2); }
 
     /* --- IMPORT EXCEL --- */
     .drop-zone {
@@ -233,7 +223,7 @@
     .drop-zone:hover { border-color: var(--primary); color: var(--primary); background: rgba(59, 130, 246, 0.05); }
     
     .status-card {
-        background: #064e3b; /* Vert foncé sombre */
+        background: #064e3b; 
         border: 1px solid #059669;
         border-radius: var(--radius);
         padding: 12px;
@@ -244,50 +234,87 @@
     /* --- PREVIEW ZONE --- */
     .main-content {
       flex: 1; 
-      background: #020617; /* Fond très très sombre pour faire ressortir la feuille */
+      background: #020617; 
       background-image: radial-gradient(#1e293b 1px, transparent 1px);
       background-size: 20px 20px;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      overflow: hidden; position: relative;
+      display: flex; flex-direction: column; 
+      position: relative;
+      overflow: hidden; /* Important pour le scroll interne */
+    }
+
+    .toolbar-preview {
+      position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px);
+      padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-subtle);
+      display: flex; align-items: center; gap: 15px; z-index: 50;
+      color: white; font-size: 0.8rem;
     }
     
-    .sheet-container {
-      transform: scale(0.65); transform-origin: center center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      border: 1px solid #e2e8f0;
-    }
-    .sheet {
-      background: white; color: black;
-      display: flex; flex-direction: column; 
-      align-items: center;
-      position: relative; transition: all 0.3s ease;
-      padding: 20px; 
+    /* Scroll wrapper pour centrer la feuille scalée */
+    .preview-scroll-wrapper {
+      width: 100%; height: 100%;
+      overflow: auto;
+      display: flex; justify-content: center; align-items: flex-start;
+      padding: 80px 40px; /* Padding pour ne pas coller aux bords */
       box-sizing: border-box;
     }
     
-    #canvas-target { display: flex; justify-content: center; align-items: center; width: 100%; }
+    .sheet-transform-layer {
+      transform-origin: top center;
+      transition: transform 0.2s ease-out;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .sheet {
+      background: white; color: black;
+      display: flex; flex-direction: column; 
+      /* Alignement FIXE pour éviter que le centrage ne bouge quand on ajoute du contenu */
+      align-items: center; justify-content: flex-start; 
+      position: relative; 
+      box-sizing: border-box;
+      padding: 10mm; /* Marge interne standard */
+      
+      /* DIMENSIONS FIXES STRICTES (Blockage) */
+      overflow: hidden;
+    }
+    
+    #canvas-target { 
+      display: flex; justify-content: center; align-items: center; width: 100%; flex: 1; 
+      /* On s'assure que le contenu peut scroller si besoin à l'intérieur mais pas casser la page */
+    }
     #canvas-target.grid-mode { flex-wrap: wrap; align-content: flex-start; gap: 15px; }
     .barcode-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; }
-    #title-display { font-family: 'Arial', sans-serif; font-weight: bold; text-align: center; margin-bottom: 20px; width: 90%; word-wrap: break-word; color: #000; }
     
-    /* Dimensions Papier */
-    .sheet.a4.portrait  { width: 210mm; min-height: 297mm; } 
-    .sheet.a4.landscape { width: 297mm; min-height: 210mm; }
-    .sheet.a3.portrait  { width: 297mm; min-height: 420mm; }
-    .sheet.a3.landscape { width: 420mm; min-height: 297mm; }
+    #title-display { 
+      font-family: 'Arial', sans-serif; font-weight: bold; text-align: center; 
+      width: 100%; word-wrap: break-word; color: #000;
+      margin-bottom: 20px; /* Espace stable sous le titre */
+      line-height: 1.2;
+    }
     
-    #barcode-wrapper { width: 100%; display: flex; justify-content: center; }
+    /* Dimensions Papier Strictes */
+    /* On utilise HEIGHT et pas MIN-HEIGHT pour bloquer le format */
+    .sheet.a4.portrait  { width: 210mm; height: 297mm; } 
+    .sheet.a4.landscape { width: 297mm; height: 210mm; }
+    .sheet.a3.portrait  { width: 297mm; height: 420mm; }
+    .sheet.a3.landscape { width: 420mm; height: 297mm; }
+    
+    #barcode-wrapper { width: 100%; display: flex; justify-content: center; height: 100%; }
 
     /* --- IMPRESSION --- */
     @media print {
-      body { background: white; }
-      .sidebar { display: none !important; }
+      body { background: white; height: auto; overflow: visible; }
+      .sidebar, .toolbar-preview { display: none !important; }
       .main-content { 
-        position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; 
+        position: static; width: 100% !important; height: auto !important; 
         padding: 0 !important; margin: 0 !important; background: white !important; display: block !important; overflow: visible !important;
       }
-      .sheet-container { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; height: 100% !important; border: none !important; }
-      .sheet { width: 100% !important; min-height: 100% !important; margin: 0 !important; page-break-after: always; }
+      .preview-scroll-wrapper { display: block; width: 100%; height: auto; padding: 0; overflow: visible; }
+      .sheet-transform-layer { transform: none !important; box-shadow: none !important; margin: 0 !important; }
+      .sheet { 
+        width: 100% !important; height: 100% !important; margin: 0 !important; 
+        page-break-after: always; box-shadow: none; overflow: visible !important;
+      }
       .barcode-item { break-inside: avoid; }
     }
   </style>
@@ -297,8 +324,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="app-title">
-<div class="app-title">GenCodeBarre<span style="font-size: 0.7em; opacity: 0.6; font-weight: normal;">v2.0</span></div>
+      <div class="app-title">GenCodeBarre<span style="font-size: 0.7em; opacity: 0.6; font-weight: normal; margin-left: 5px;">v2.1 Stable</span></div>
     </div>
     
     <div class="sidebar-content">
@@ -319,10 +345,7 @@
             <label>Taille Titre</label>
             <span id="titleSizeVal" class="range-value">3</span>
           </div>
-          <input type="range" id="titleSizeSlider" min="1" max="8" step="0.5" value="3" list="tickmarks-title">
-          <datalist id="tickmarks-title">
-            <option value="1"></option><option value="3"></option><option value="5"></option><option value="8"></option>
-          </datalist>
+          <input type="range" id="titleSizeSlider" min="1" max="10" step="0.5" value="3">
         </div>
         
         <div class="divider"></div>
@@ -377,10 +400,7 @@
             <label>Échelle du Code</label>
             <span id="codeSizeVal" class="range-value">1</span>
           </div>
-          <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1" list="tickmarks-code">
-          <datalist id="tickmarks-code">
-            <option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option>
-          </datalist>
+          <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1">
         </div>
 
         <div class="actions">
@@ -401,7 +421,7 @@
             <div style="font-size: 1.5rem; margin-bottom: 10px;">📂</div>
             <div style="font-weight: 500;">Sélectionner un fichier .xlsx</div>
             <div style="font-size: 0.8rem; opacity: 0.6; margin-top: 5px;">Colonne A uniquement</div>
-            <input type="file" id="excelInput" class="hidden-input" accept=".xlsx, .xls">
+            <input type="file" id="excelInput" class="hidden-input" accept=".xlsx, .xls" style="display:none">
           </label>
         </div>
 
@@ -424,22 +444,27 @@
       </div>
     </div>
     
-    <!-- Footer Créé par Micfri -->
     <div class="sidebar-footer">
       <span>Créé par Micfri</span>
     </div>
   </aside>
 
   <main class="main-content">
-    <div style="position:absolute; top:20px; color:rgba(255,255,255,0.3); font-size:11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">
-      Espace de travail (65%)
+    
+    <!-- Barre d'outils flottante pour le Zoom -->
+    <div class="toolbar-preview">
+      <span>Zoom Aperçu</span>
+      <input type="range" id="previewZoomSlider" min="0.3" max="1.5" step="0.05" value="0.65" style="width: 100px;">
+      <span id="previewZoomVal" style="width: 40px; text-align:right;">65%</span>
     </div>
     
-    <div class="sheet-container" id="capture-zone">
-      <div id="pageSheet" class="sheet a4 portrait">
-        <div id="title-display"></div>
-        <div id="barcode-wrapper">
-          <div id="canvas-target"></div>
+    <div class="preview-scroll-wrapper">
+      <div class="sheet-transform-layer" id="sheetLayer">
+        <div id="pageSheet" class="sheet a4 portrait">
+          <div id="title-display"></div>
+          <div id="barcode-wrapper">
+            <div id="canvas-target"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -456,6 +481,7 @@
       
       target: document.getElementById("canvas-target"),
       pageSheet: document.getElementById("pageSheet"),
+      sheetLayer: document.getElementById("sheetLayer"),
       printStyle: document.getElementById("print-style"),
       printBtn: document.getElementById("printBtn"),
       downloadBtn: document.getElementById("downloadBtn"),
@@ -466,6 +492,10 @@
       titleSizeSlider: document.getElementById("titleSizeSlider"),
       titleSizeVal: document.getElementById("titleSizeVal"),
       titleDisplay: document.getElementById("title-display"),
+      
+      // Nouveau Zoom
+      previewZoomSlider: document.getElementById("previewZoomSlider"),
+      previewZoomVal: document.getElementById("previewZoomVal"),
       
       tabs: document.querySelectorAll('.tab-btn'),
       tabContents: document.querySelectorAll('.tab-content'),
@@ -484,6 +514,13 @@
         mode: 'single', // 'single' ou 'batch'
         batchData: []   // Stocke les codes importés
     };
+
+    // --- GESTION DU ZOOM APERÇU ---
+    refs.previewZoomSlider.addEventListener("input", (e) => {
+      const val = e.target.value;
+      refs.sheetLayer.style.transform = `scale(${val})`;
+      refs.previewZoomVal.textContent = Math.round(val * 100) + "%";
+    });
 
     // --- GESTION DES ONGLETS ---
     function switchTab(targetId) {
@@ -535,7 +572,6 @@
         }
     }
 
-    // Réutilisation de la fonction avec les valeurs d'origine demandées
     function createBarcodeElement(text, scale) {
         const type = refs.type.value;
         const displayValue = refs.showText.checked;
@@ -633,16 +669,23 @@
     refs.printBtn.addEventListener("click", () => window.print());
     
     refs.downloadBtn.addEventListener("click", () => {
-        const container = document.querySelector('.sheet-container');
-        const originalTransform = container.style.transform;
-        container.style.transform = "none"; 
-        html2canvas(document.getElementById("pageSheet"), { scale: 2, backgroundColor: "#ffffff", logging: false })
+        // Pour html2canvas, on enlève temporairement le scale visuel
+        const originalTransform = refs.sheetLayer.style.transform;
+        refs.sheetLayer.style.transform = "none";
+        
+        // On s'assure de capturer la feuille entière
+        html2canvas(document.getElementById("pageSheet"), { 
+            scale: 2, 
+            backgroundColor: "#ffffff", 
+            logging: false 
+        })
         .then(canvas => {
             const a = document.createElement("a");
             a.download = `etiquette_${Date.now()}.png`;
             a.href = canvas.toDataURL("image/png");
             a.click();
-            container.style.transform = originalTransform; 
+            // On remet le zoom utilisateur
+            refs.sheetLayer.style.transform = originalTransform; 
         });
     });
 
@@ -660,7 +703,14 @@
         if(e.dataTransfer.files.length) { refs.excelInput.files = e.dataTransfer.files; handleFile({target: refs.excelInput}); } 
     });
 
-    window.addEventListener('load', () => { updatePageConfig(); generer(); updateTitle(); });
+    // Initialisation
+    window.addEventListener('load', () => { 
+        updatePageConfig(); 
+        generer(); 
+        updateTitle();
+        // Set zoom initial
+        refs.sheetLayer.style.transform = `scale(0.65)`;
+    });
   </script>
 </body>
 </html>
