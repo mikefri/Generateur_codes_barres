@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GenCodeBarres v2.2 - WYSIWYG</title>
+  <title>GenCodeBarres v2.3 - WYSIWYG (Format A3 Unlock)</title>
   <meta name="theme-color" content="#0f172a">
 
   <!-- Polices Modernes -->
@@ -357,7 +357,7 @@
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="app-title">GenCodeBarre<span style="font-size: 0.7em; opacity: 0.6; font-weight: normal; margin-left: 5px;">v2.2 Wysiwyg</span></div>
+      <div class="app-title">GenCodeBarre<span style="font-size: 0.7em; opacity: 0.6; font-weight: normal; margin-left: 5px;">v2.3 (A3 Unlock)</span></div>
     </div>
     
     <div class="sidebar-content">
@@ -433,7 +433,8 @@
             <label>Échelle du Code</label>
             <span id="codeSizeVal" class="range-value">1</span>
           </div>
-          <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1">
+          <!-- MODIFICATION ICI : Max passé de 5 à 15 pour le format A3 -->
+          <input type="range" id="sizeSlider" min="0.5" max="15" step="0.1" value="1">
         </div>
 
         <div class="actions">
@@ -461,7 +462,7 @@
         <!-- Zone de statut -->
         <div id="importStatus" class="status-card">
           <div style="color: #fff; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem;">
-             Import terminé
+              Import terminé
           </div>
           <div id="importCount" style="color: #a7f3d0; font-size: 0.85rem;"></div>
         </div>
