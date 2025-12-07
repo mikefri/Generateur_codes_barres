@@ -826,9 +826,9 @@
             renderBarcodes();
         });
 
-        // --- Download PDF (Multi-Pages) ---
+        // --- Download PDF (Multi-Pages) avec Progression ---
         refs.downloadBtn.addEventListener('click', async () => {
-            // Désactiver le bouton pendant le traitement pour éviter les clics multiples
+            // Désactiver le bouton pendant le traitement
             refs.downloadBtn.textContent = 'Génération en cours...';
             refs.downloadBtn.disabled = true;
 
@@ -842,8 +842,8 @@
             
             // Récupérer toutes les planches affichées
             const sheets = refs.sheetLayer.querySelectorAll('.sheet');
-            if (sheets.length === 0) {
-                alert("Aucune planche à télécharger.");
+            if (sheets.length === 0 || appData.length === 0) {
+                alert("Aucune donnée chargée pour générer un PDF.");
                 refs.downloadBtn.textContent = 'Télécharger le PDF';
                 refs.downloadBtn.disabled = false;
                 return;
@@ -853,21 +853,25 @@
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4'); 
 
-            // Paramètres A4 en mm pour le PDF
             const pdfWidth = 210;
             const pdfHeight = 297;
 
             let firstPage = true;
+            let pageIndex = 1;
+            const totalSheets = sheets.length;
 
             for (const sheet of sheets) {
+                // *** MISE À JOUR DE LA PROGRESSION ***
+                refs.downloadBtn.textContent = `Génération en cours... Page ${pageIndex} / ${totalSheets}`;
+                
                 if (!firstPage) {
                     // Ajouter une nouvelle page au PDF pour toutes les feuilles après la première
                     pdf.addPage();
                 }
 
-                // 3. Capturer la feuille avec html2canvas
+                // 3. Capturer la feuille avec html2canvas (Scale: 2 pour l'optimisation)
                 const canvas = await html2canvas(sheet, {
-                    scale: 3, // Haute résolution
+                    scale: 2, // Optimisation: Qualité légèrement réduite mais beaucoup plus rapide
                     useCORS: true, 
                     logging: false,
                 });
@@ -879,6 +883,7 @@
                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
                 firstPage = false;
+                pageIndex++; 
             }
 
             // 5. Téléchargement du fichier
