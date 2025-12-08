@@ -1,121 +1,344 @@
-/* style.css */
-:root { 
-  --bg-app: #1e1e2e; 
-  --sidebar-bg: #2d2d44; 
-  --text-main: #cdd6f4; 
-  --accent: #89b4fa; 
-}
+    :root { 
+      /* Palette Pro SaaS (Slate) */
+      --bg-app: #0f172a;       /* Fond principal très sombre */
+      --bg-sidebar: #1e293b;   /* Sidebar légèrement plus claire */
+      --bg-panel: #334155;     /* Fond des inputs */
+      
+      --border-subtle: #334155;
+      --border-focus: #3b82f6;
 
-body { 
-  font-family: 'Segoe UI', sans-serif; 
-  background: var(--bg-app); 
-  color: var(--text-main); 
-  margin: 0; padding: 0; 
-  height: 100vh; 
-  display: flex; 
-  overflow: hidden; 
-}
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      
+      --primary: #3b82f6;      /* Bleu standard professionnel */
+      --primary-hover: #2563eb;
+      
+      --success: #10b981;
+      --danger: #ef4444;
 
-/* --- SIDEBAR --- */
-.sidebar {
-  width: 300px; 
-  background: var(--sidebar-bg); 
-  padding: 30px 20px;
-  display: flex; flex-direction: column; gap: 15px;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.2); 
-  z-index: 10; 
-  overflow-y: auto;
-}
+      --radius: 6px; 
+    }
 
-.app-title {
-  margin: 0; 
-  color: var(--accent); 
-  font-size: 1.2rem;
-}
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main); 
+      margin: 0; padding: 0; 
+      height: 100vh; 
+      display: flex; 
+      overflow: hidden; 
+    }
 
-.control-group { display: flex; flex-direction: column; gap: 5px; }
-.control-group label { font-weight: bold; font-size: 0.85rem; color: #a6adc8; }
-input[type="text"], select { 
-  padding: 10px; 
-  border-radius: 6px; 
-  border: 1px solid #45475a; 
-  background: #181825; 
-  color: white; 
-  outline: none; 
-}
+    /* --- SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-app); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-panel); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-.checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; }
-.checkbox-wrapper input { accent-color: var(--accent); cursor: pointer; }
-.divider { border: 0; border-top: 1px solid #45475a; width: 100%; }
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 320px; 
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      padding: 0; 
+      display: flex; flex-direction: column;
+      z-index: 10; 
+      overflow-y: auto;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
 
-.radio-group { display: flex; gap: 10px; background: #181825; padding: 4px; border-radius: 6px; border: 1px solid #45475a; }
-.radio-option { flex: 1; position: relative; }
-.radio-option input { position: absolute; opacity: 0; cursor: pointer; height: 100%; width: 100%; z-index: 2; margin: 0; }
-.radio-option span { 
-  display: block; text-align: center; padding: 6px; 
-  border-radius: 4px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; 
-}
-.radio-option input:checked + span { background: var(--accent); color: #fff; font-weight: bold; }
+    .sidebar-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-sidebar);
+      position: sticky; top: 0; z-index: 20;
+    }
 
-/* Boutons Actions */
-.actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
-button { 
-  padding: 12px; border-radius: 6px; border: none; 
-  font-weight: bold; cursor: pointer; transition: transform 0.1s; 
-}
-button:hover { opacity: 0.9; transform: scale(1.02); }
+    .app-title {
+      margin: 0; 
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex; align-items: center; gap: 10px;
+    }
 
-.btn-print { background: #a6e3a1; color: #1e1e2e; }
-.btn-download { background: #f9e2af; color: #1e1e2e; }
+    .sidebar-content {
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 24px;
+      flex: 1; 
+    }
 
-/* --- APERÇU --- */
-.main-content {
-  flex: 1; background: #181825;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  overflow: hidden; position: relative;
-}
+    /* --- SIDEBAR FOOTER --- */
+    .sidebar-footer {
+      padding: 15px 24px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--bg-sidebar);
+      margin-top: auto; 
+    }
 
-.sheet-container {
-  transform: scale(0.60); transform-origin: center center;
-  box-shadow: 0 0 80px rgba(0,0,0,0.6);
-}
+    /* --- ONGLETS --- */
+    .tabs-nav {
+      display: flex;
+      background: #0f172a;
+      padding: 3px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-subtle);
+    }
+    .tab-btn {
+      flex: 1; 
+      padding: 8px; 
+      background: transparent; 
+      border: none;
+      color: var(--text-secondary); 
+      cursor: pointer; 
+      font-weight: 500;
+      font-size: 0.85rem;
+      border-radius: 4px; 
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { 
+      background: var(--bg-panel);
+      color: #fff; 
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
 
-.sheet {
-  background: white; color: black;
-  display: flex; 
-  flex-direction: column; /* Important pour empiler Titre + Code */
-  justify-content: center; 
-  align-items: center;
-  position: relative;
-  transition: all 0.3s ease;
-}
+    .tab-content { display: none; flex-direction: column; gap: 20px; height: 100%; }
+    .tab-content.active { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- Style du Titre --- */
-#title-display {
-  font-family: 'Arial', sans-serif;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px; /* Espace entre titre et code */
-  width: 90%;
-  word-wrap: break-word; /* Coupe les mots si trop longs */
-  color: #000;
-}
+    /* --- FORMULAIRES --- */
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    
+    .range-header { display: flex; justify-content: space-between; align-items: center; }
+    .range-header label, .control-group label { 
+      font-weight: 500; font-size: 0.8rem; color: var(--text-secondary); 
+    }
+    .range-value { 
+      font-size: 0.75rem; color: var(--text-main); font-family: monospace; 
+      background: var(--bg-app); padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border-subtle);
+    }
 
-/* Dimensions */
-.sheet.a4.portrait  { width: 210mm; height: 297mm; }
-.sheet.a4.landscape { width: 297mm; height: 210mm; }
-.sheet.a3.portrait  { width: 297mm; height: 420mm; }
-.sheet.a3.landscape { width: 420mm; height: 297mm; }
+    /* Inputs Pro */
+    input[type="text"], select { 
+      padding: 10px 12px; 
+      border-radius: var(--radius); 
+      border: 1px solid var(--border-subtle); 
+      background: var(--bg-app); 
+      color: #fff; 
+      outline: none; 
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
 
-#barcode-wrapper { transform-origin: center center; }
+    /* Sliders */
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; margin: 8px 0;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%; height: 4px; background: var(--bg-panel); border-radius: 2px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+      background: var(--primary); margin-top: -6px; border: 2px solid var(--bg-sidebar);
+      transition: transform 0.1s;
+    }
+    
+    /* Checkbox & Radio */
+    .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--text-main); }
+    .checkbox-wrapper input { accent-color: var(--primary); width: 16px; height: 16px; margin: 0; }
+    
+    .radio-group { display: flex; gap: 1px; background: var(--border-subtle); padding: 1px; border-radius: var(--radius); overflow: hidden; }
+    .radio-option { flex: 1; position: relative; background: var(--bg-sidebar); }
+    .radio-option input { position: absolute; opacity: 0; cursor: pointer; height: 100%; width: 100%; z-index: 2; margin: 0; }
+    .radio-option span { 
+      display: block; text-align: center; padding: 8px; 
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: 0.2s; color: var(--text-secondary);
+    }
+    .radio-option input:checked + span { background: var(--primary); color: #fff; }
 
-/* --- IMPRESSION --- */
-@media print {
-  .sidebar { display: none !important; }
-  .main-content { 
-    position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; 
-    padding: 0 !important; margin: 0 !important; background: white !important; display: block !important; overflow: visible !important;
-  }
-  .sheet-container { transform: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; height: 100% !important; }
-  .sheet { width: 100% !important; height: 100% !important; margin: 0 !important; page-break-after: always; }
+    .divider { border: 0; border-top: 1px solid var(--border-subtle); width: 100%; margin: 5px 0; }
+
+    /* --- BOUTONS --- */
+    .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
+    button.action-btn { 
+      padding: 10px; border-radius: var(--radius); border: 1px solid transparent; 
+      font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
+      display: flex; justify-content: center; align-items: center; gap: 8px;
+    }
+    
+    .btn-print { background: var(--text-main); color: var(--bg-app); border: 1px solid var(--text-main); }
+    .btn-print:hover { background: #e2e8f0; }
+
+    .btn-download { background: transparent; color: var(--text-main); border: 1px solid var(--border-subtle); }
+    .btn-download:hover { border-color: var(--text-secondary); background: var(--bg-panel); }
+
+    /* Utils btns */
+    #regenerateBatchBtn { background: var(--primary); color: white; }
+    #regenerateBatchBtn:hover { background: var(--primary-hover); }
+    
+    #clearDataBtn { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: transparent; }
+    #clearDataBtn:hover { background: rgba(239, 68, 68, 0.2); }
+
+    /* --- IMPORT EXCEL --- */
+    .drop-zone {
+      border: 1px dashed var(--border-subtle);
+      background: var(--bg-app);
+      border-radius: var(--radius);
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .drop-zone:hover { border-color: var(--primary); color: var(--primary); background: rgba(59, 130, 246, 0.05); }
+    
+    .status-card {
+        background: #064e3b; 
+        border: 1px solid #059669;
+        border-radius: var(--radius);
+        padding: 12px;
+        margin-top: 10px;
+        display: none; 
+    }
+
+    /* --- PREVIEW ZONE --- */
+    .main-content {
+      flex: 1; 
+      background: #020617; 
+      background-image: radial-gradient(#1e293b 1px, transparent 1px);
+      background-size: 20px 20px;
+      display: flex; flex-direction: column; 
+      position: relative;
+      overflow: hidden; /* Important pour le scroll interne */
+    }
+
+    .toolbar-preview {
+      position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px);
+      padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-subtle);
+      display: flex; align-items: center; gap: 15px; z-index: 50;
+      color: white; font-size: 0.8rem;
+    }
+    
+    /* Scroll wrapper pour centrer la feuille scalée */
+    .preview-scroll-wrapper {
+      width: 100%; height: 100%;
+      overflow: auto;
+      display: flex; justify-content: center; align-items: flex-start;
+      padding: 80px 40px; /* Padding pour ne pas coller aux bords */
+      box-sizing: border-box;
+    }
+    
+    .sheet-transform-layer {
+      transform-origin: top center;
+      transition: transform 0.2s ease-out;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .sheet {
+      background: white; color: black;
+      display: flex; flex-direction: column; 
+      /* Alignement FIXE pour éviter que le centrage ne bouge quand on ajoute du contenu */
+      align-items: center; justify-content: flex-start; 
+      position: relative; 
+      box-sizing: border-box;
+      padding: 10mm; /* Marge interne standard */
+      
+      /* DIMENSIONS FIXES STRICTES (Blockage) */
+      overflow: hidden;
+    }
+    
+    #canvas-target { 
+      display: flex; justify-content: center; align-items: center; width: 100%; flex: 1; 
+      /* On s'assure que le contenu peut scroller si besoin à l'intérieur mais pas casser la page */
+    }
+    #canvas-target.grid-mode { flex-wrap: wrap; align-content: flex-start; gap: 15px; }
+    .barcode-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; }
+    
+    #title-display { 
+      font-family: 'Arial', sans-serif; font-weight: bold; text-align: center; 
+      width: 100%; word-wrap: break-word; color: #000;
+      margin-bottom: 20px; /* Espace stable sous le titre */
+      line-height: 1.2;
+    }
+    
+    /* Dimensions Papier Strictes */
+    /* On utilise HEIGHT et pas MIN-HEIGHT pour bloquer le format */
+    .sheet.a4.portrait  { width: 210mm; height: 297mm; } 
+    .sheet.a4.landscape { width: 297mm; height: 210mm; }
+    .sheet.a3.portrait  { width: 297mm; height: 420mm; }
+    .sheet.a3.landscape { width: 420mm; height: 297mm; }
+    
+    #barcode-wrapper { width: 100%; display: flex; justify-content: center; height: 100%; }
+
+    /* --- IMPRESSION (CORRECTIF MAJEUR) --- */
+    @media print {
+      /* Force l'imprimante à ne pas mettre de marge (le CSS gère tout) */
+      @page { margin: 0; }
+      
+      body { 
+          background: white; 
+          height: auto; 
+          overflow: visible;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+      }
+      
+      .sidebar, .toolbar-preview, .sidebar-footer { display: none !important; }
+      
+      /* Reset total des conteneurs de layout */
+      .main-content, .preview-scroll-wrapper, .sheet-transform-layer { 
+        position: static !important; 
+        width: auto !important; 
+        height: auto !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        background: transparent !important; 
+        display: block !important; 
+        overflow: visible !important;
+        transform: none !important; /* CRUCIAL: Annule le zoom écran */
+        box-shadow: none !important;
+        border: none !important;
+      }
+
+      .sheet { 
+        /* On ne force PAS width:100% ici, on garde les dimensions mm définies par les classes (.a4, etc)
+           Cela garantit que le layout flexbox interne a exactement le même espace qu'à l'écran. */
+        margin: 0 !important; 
+        page-break-after: always; 
+        box-shadow: none !important; 
+        border: none !important;
+        overflow: hidden !important; /* On garde le blocage demandé */
+      }
+      
+      /* Sécurité pour le layout grille en impression */
+      #canvas-target.grid-mode { 
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 15px !important;
+      }
+      
+      .barcode-item { break-inside: avoid; }
+    }
+#btn-tab-tools {
+    /* 1. On enlève le style "lien" */
+    text-decoration: none !important;
+    color: white !important;
+
+    /* 2. On active le mode "Flexbox" pour pouvoir centrer */
+    display: inline-flex !important; /* Rend le lien capable de gérer l'alignement */
+    
+    /* 3. On centre le texte */
+    justify-content: center; /* Centre horizontalement (gauche/droite) */
+    align-items: center;     /* Centre verticalement (haut/bas) */
 }
