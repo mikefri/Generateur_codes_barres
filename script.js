@@ -262,3 +262,50 @@ const refs = {
           });
       });
     }
+
+document.addEventListener('DOMContentLoaded', () => {
+
+
+    const helpButton = document.getElementById('helpButton');
+    const helpModal = document.getElementById('helpModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    // Fonction pour ouvrir la modale
+    function openModal() {
+        helpModal.classList.add('open');
+    }
+
+    // Fonction pour fermer la modale
+    function closeModal() {
+        helpModal.classList.remove('open');
+    }
+
+    // 1. Ouvrir la modale au clic sur le bouton '?'
+    if (helpButton) {
+        helpButton.addEventListener('click', openModal);
+    }
+
+    // 2. Fermer la modale au clic sur le bouton 'X'
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
+
+    // 3. Fermer la modale si on clique en dehors (sur l'overlay)
+    if (helpModal) {
+        helpModal.addEventListener('click', (e) => {
+            // Ne fermer que si l'élément cliqué est l'overlay lui-même
+            if (e.target === helpModal) {
+                closeModal();
+            }
+        });
+    }
+
+    // 4. Fermer la modale si on appuie sur la touche ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('open')) {
+            closeModal();
+        }
+    });
+
+  
+});
