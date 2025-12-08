@@ -386,3 +386,95 @@
     color: white;
     ...
 }
+
+  /* ---------------------------------- */
+/* Styles pour la Modale d'Aide (Help Modal) */
+/* ---------------------------------- */
+
+/* Masque et positionne la modale sur tout l'écran */
+.modal-overlay {
+  display: none; /* Cache la modale par défaut */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Fond semi-transparent */
+  z-index: 2000; /* Doit être au-dessus du bouton d'aide (z-index: 1000) */
+  backdrop-filter: blur(4px); /* Effet de flou moderne */
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+/* Fait apparaître la modale */
+.modal-overlay.open {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+}
+
+/* Le contenu intérieur de la fenêtre */
+.modal-content {
+  background-color: var(--color-background, #fff); /* Fond blanc/clair */
+  color: var(--color-text, #1e293b);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px; /* Largeur maximale pour les grands écrans */
+  transform: translateY(-50px);
+  transition: transform 0.3s ease-out;
+}
+
+.modal-overlay.open .modal-content {
+  transform: translateY(0);
+}
+
+/* En-tête de la modale */
+.modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+/* Bouton de fermeture (X) */
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  color: var(--color-text-subtle, #94a3b8);
+  cursor: pointer;
+  padding: 0 5px;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--color-danger, #ef4444);
+}
+
+/* Corps de la modale */
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body h4 {
+  color: var(--color-primary, #3b82f6);
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.modal-body ul {
+    margin-left: 20px;
+    padding-left: 0;
+}
+.modal-body li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}  
