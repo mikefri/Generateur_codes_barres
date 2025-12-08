@@ -150,7 +150,7 @@ function createArrowSVG(fullOption) {
     // Configuration pour le style LIGNE ÉPAISSE
     path.setAttribute("fill", "none"); 
     path.setAttribute("stroke", "#000"); 
-    path.setAttribute("stroke-width", "16"); // Epaisseur : 16 (TRÈS ÉPAIS)
+    path.setAttribute("stroke-width", "20"); // Epaisseur : 16 (TRÈS ÉPAIS)
     path.setAttribute("stroke-linecap", "round");
     
     let dAttribute = "";
