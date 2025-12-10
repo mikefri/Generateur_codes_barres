@@ -38,20 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DÉFINITION DES PRESETS DE GRILLE ---
     const gridPresets = [
         {
-            name: "Planche de 24 (Avery 3x8)",
-            marginTop: 4.5,
-            marginLeft: 5,
+            name: "Planche de 24 70x36",
+            marginTop: 3.5,
+            marginLeft: 0,
             nbCols: 3,
             nbRows: 8,
             rowHeight: 36,
         },
         {
-            name: "Grandes Étiquettes (2x4)",
-            marginTop: 10,
-            marginLeft: 10,
-            nbCols: 2,
+            name: "Planche de 4 210x74",
+            marginTop: 0,
+            marginLeft: 0,
+            nbCols: 1,
             nbRows: 4,
-            rowHeight: 65,
+            rowHeight: 74,
         },
         {
             name: "Petites Étiquettes (4x10)",
