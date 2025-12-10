@@ -338,7 +338,7 @@
         }
 
         /* Impression */
-        @media print {
+@media print {
 
             @page {
                 margin: 0;
@@ -346,10 +346,15 @@
 
             .sidebar,
             .toolbar-preview,
-            .help-btn { /* ⬅️ AJOUTEZ .help-btn ICI */
+            .help-btn { 
                 display: none !important;
             }
 
+            /* ➡️ AJOUTEZ CETTE RÈGLE POUR SUPPRIMER LE DÉCALAGE HAUT */
+            .preview-scroll-wrapper {
+                padding-top: 0 !important;
+            }
+            
             .main-content,
             .preview-scroll-wrapper {
                 display: block !important;
