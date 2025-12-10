@@ -294,7 +294,7 @@
           print-color-adjust: exact;
       }
       
-      .sidebar, .toolbar-preview, .sidebar-footer { display: none !important; }
+      .sidebar, .help-btn, .toolbar-preview, .sidebar-footer { display: none !important; }
       
       /* Reset total des conteneurs de layout */
       .main-content, .preview-scroll-wrapper, .sheet-transform-layer { 
