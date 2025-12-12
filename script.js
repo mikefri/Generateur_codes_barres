@@ -202,28 +202,52 @@ document.addEventListener('DOMContentLoaded', () => {
     refs.formatInputs.forEach(input => input.addEventListener("change", updatePageConfig));
     refs.orientationInputs.forEach(input => input.addEventListener("change", updatePageConfig));
     refs.printBtn.addEventListener("click", () => window.print());
+
+    
     
     refs.downloadBtn.addEventListener("click", () => {
-        // Pour html2canvas, on enlève temporairement le scale visuel
-        const originalTransform = refs.sheetLayer.style.transform;
-        refs.sheetLayer.style.transform = "none";
-        
-        // On s'assure de capturer la feuille entière
-        html2canvas(document.getElementById("pageSheet"), {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            logging: false
-        })
-        .then(canvas => {
-            const a = document.createElement("a");
-            a.download = `etiquette_${Date.now()}.png`;
-            a.href = canvas.toDataURL("image/png");
-            a.click();
-            // On remet le zoom utilisateur
-            refs.sheetLayer.style.transform = originalTransform;
-        });
-    });
+    // On récupère la librairie jsPDF à partir de l'objet window (car importé via CDN)
+    const { jsPDF } = window.jspdf;
+    
+    const pageElement = document.getElementById("pageSheet");
+    
+    // Pour html2canvas / jsPDF, on enlève temporairement le scale visuel
+    const originalTransform = refs.sheetLayer.style.transform;
+    refs.sheetLayer.style.transform = "none";
 
+    // 1. Détermine le nom du fichier
+    const fileName = (refs.titleInput.value.trim() || "codes-barres") + ".pdf";
+
+    // 2. Initialise jsPDF
+    const format = document.querySelector('input[name="format"]:checked').value;
+    const orientation = document.querySelector('input[name="orientation"]:checked').value === 'landscape' ? 'l' : 'p';
+
+    // Les dimensions A4 en points (approx 595x842) ou A3 (842x1190) sont gérées par jsPDF
+    const doc = new jsPDF(orientation, 'pt', format);
+    
+    // 3. Utiliser html2canvas pour capturer l'élément et le mettre dans le PDF
+    // Ceci permet de capturer les codes-barres (SVG/Canvas) et le titre.
+    doc.html(pageElement, {
+        callback: function (doc) {
+            // Sauvegarde le PDF généré
+            doc.save(fileName);
+
+            // On remet le zoom utilisateur après la sauvegarde
+            refs.sheetLayer.style.transform = originalTransform;
+        },
+        // IMPORTANT : Utiliser une échelle élevée pour une meilleure qualité de l'image raster
+        html2canvas: {
+            scale: 2.5, // 2.5x la résolution du canvas
+            logging: false,
+            backgroundColor: "#ffffff"
+        },
+        x: 0, // Position de départ X
+        y: 0, // Position de départ Y
+        // Le paramètre `width` (par défaut 210mm pour A4) est géré par la taille du doc.
+    });
+});
+
+    
     refs.excelInput.addEventListener("change", handleFile);
     refs.clearDataBtn.addEventListener("click", () => { appState.batchData = []; appState.mode = 'single'; resetImportUI(); generer(); });
     refs.regenerateBatchBtn.addEventListener("click", () => {
