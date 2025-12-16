@@ -127,6 +127,30 @@ select:focus {
     border-color: var(--primary);
 }
 
+/* HARMONISATION : Styles pour les champs de saisie manuelle (Codes 1, 2, etc.) */
+.manual-code-input {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-app);
+    color: #fff;
+    outline: none;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px; /* Ajout d'un espacement */
+}
+
+.manual-code-input:focus {
+    border-color: var(--primary);
+}
+
+/* Le conteneur ne doit pas avoir d'espacement car il est géré par les inputs eux-mêmes */
+.input-list-container {
+    display: flex;
+    flex-direction: column;
+}
+
 /* AJOUT : Style pour la nouvelle zone de saisie manuelle */
 #manualInput {
     padding: 10px 12px;
