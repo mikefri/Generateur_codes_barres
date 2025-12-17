@@ -521,4 +521,31 @@
     ::-webkit-scrollbar-thumb { background: var(--bg-panel); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+/* Style pour le conteneur des inputs manuels */
+.input-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
 
+/* Style des champs de saisie manuelle */
+.manual-code-input {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-app); /* Fond sombre comme les autres */
+    color: #fff;
+    outline: none;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.manual-code-input:focus {
+    border-color: var(--primary); /* Lueur bleue au focus */
+}
+
+.manual-code-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
