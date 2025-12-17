@@ -1,21 +1,40 @@
 {
-  "name": "GenCodeBarre",
-  "short_name": "GenCode",
-  "description": "Générateur de codes-barres et QR codes hors ligne.",
+  "name": "GenCodeBarre - Générateur Pro",
+  "short_name": "GenCodeBarre",
+  "id": "/GenCodeBarre/",
+  "description": "Générateur de codes-barres et QR codes. Import Excel et création de planches d'étiquettes hors ligne.",
   "start_url": "index.html",
+  "scope": ".",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0f172a",
   "theme_color": "#3b82f6",
   "icons": [
     {
-      "src": "icon-192x192.png", 
+      "src": "icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Interface de création de planches"
     }
   ]
 }
