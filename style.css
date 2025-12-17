@@ -478,3 +478,39 @@
     margin-bottom: 8px;
     line-height: 1.4;
 }  
+
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid #1e293b;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.footer-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap; /* Évite que ça dépasse sur les petits écrans */
+}
+
+.footer-separator {
+    color: #334155;
+}
+
+.bug-report-link {
+    color: #ef4444; /* Rouge "soft" pour attirer l'attention sans être agressif */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.bug-report-link:hover {
+    color: #f87171; /* Éclaircissement au survol */
+    opacity: 0.8;
+}
+
+.bug-report-link i {
+    font-size: 0.75rem;
+}
