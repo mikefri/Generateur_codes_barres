@@ -479,38 +479,37 @@
     line-height: 1.4;
 }  
 
+/* Style global du footer */
 .sidebar-footer {
     padding: 1rem;
     border-top: 1px solid #1e293b;
-    font-size: 0.85rem;
-    color: #94a3b8;
+    background-color: #0f172a; /* Fond très sombre */
 }
 
-.footer-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap; /* Évite que ça dépasse sur les petits écrans */
+/* Texte "Créé par Micfri" en gris très clair */
+.footer-author {
+    color: #f1f5f9; /* Blanc cassé, très lisible */
+    font-weight: 500;
 }
 
 .footer-separator {
-    color: #334155;
+    color: #475569;
+    margin: 0 4px;
 }
 
+/* Style du lien "Signaler un bug" */
 .bug-report-link {
-    color: #ef4444; /* Rouge "soft" pour attirer l'attention sans être agressif */
+    color: #fb7185 !important; /* Rose/Rouge vif pour le contraste */
     text-decoration: none;
-    display: flex;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    transition: color 0.2s ease, opacity 0.2s ease;
+    gap: 5px;
+    transition: all 0.2s ease;
 }
 
+/* Changement de couleur au survol pour l'interactivité */
 .bug-report-link:hover {
-    color: #f87171; /* Éclaircissement au survol */
-    opacity: 0.8;
-}
-
-.bug-report-link i {
-    font-size: 0.75rem;
+    color: #ffffff !important;
+    text-decoration: underline;
 }
